@@ -141,9 +141,14 @@ class KeyService {
     BitcoinNetwork network, {
     int accountIndex = 0,
   }) {
+    // For hardened derivation paths, we must derive from the master private key first,
+    // then extract the public key. We cannot derive hardened children from xpub.
     final derivationPath = _buildDerivationPath(scheme, network, accountIndex);
-    final masterXpub = deriveMasterXpub(seed, network);
-    return deriveXpub(masterXpub, derivationPath);
+    final masterXprv = deriveMasterXprv(seed, network);
+    final accountXprv = deriveXprv(masterXprv, derivationPath);
+    // Extract xpub from xprv
+    final accountNode = bip32.BIP32.fromBase58(accountXprv);
+    return accountNode.neutered().toBase58();
   }
 
   /// Derives a private key for a specific address index.
