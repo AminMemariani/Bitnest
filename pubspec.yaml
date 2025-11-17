@@ -61,6 +61,9 @@ dependencies:
   # Preferences storage
   shared_preferences: ^2.3.2
 
+  # UUID generation
+  uuid: ^4.5.1
+
   # Internationalization and localization
   intl: ^0.20.2
 
