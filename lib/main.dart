@@ -80,14 +80,14 @@ class BitNestApp extends StatelessWidget {
         title: 'BitNest',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.orange,
+            seedColor: const Color(0xFF977439),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
         ),
         darkTheme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.orange,
+            seedColor: const Color(0xFF977439),
             brightness: Brightness.dark,
           ),
           useMaterial3: true,
