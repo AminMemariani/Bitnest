@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/networks.dart';
+import '../utils/debug_logger.dart';
 import '../models/utxo.dart';
 import '../models/transaction.dart';
 import '../models/fee_estimate.dart';
@@ -67,7 +68,13 @@ class ApiService {
           0;
 
       return BigInt.from(balance - spent);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getAddressBalance',
+        additionalInfo: {'address': address},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -95,7 +102,13 @@ class ApiService {
       return jsonList
           .map((json) => UTXO.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getAddressUtxos',
+        additionalInfo: {'address': address},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -123,7 +136,13 @@ class ApiService {
       return jsonList
           .map((json) => Transaction.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getAddressTransactions',
+        additionalInfo: {'address': address},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -149,7 +168,13 @@ class ApiService {
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return Transaction.fromJson(json);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getTransaction',
+        additionalInfo: {'txid': txid},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -174,7 +199,13 @@ class ApiService {
       }
 
       return response.body.trim();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getTransactionHex',
+        additionalInfo: {'txid': txid},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -210,7 +241,12 @@ class ApiService {
       });
 
       return estimates;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getFeeEstimates',
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -250,7 +286,13 @@ class ApiService {
         satPerVByte: closestFee,
         estimatedBlocks: closestBlocks,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.getFeeEstimate',
+        additionalInfo: {'targetBlocks': targetBlocks},
+      );
       if (e is ApiException) {
         rethrow;
       }
@@ -280,7 +322,13 @@ class ApiService {
       }
 
       return response.body.trim();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'ApiService.broadcastTransaction',
+        additionalInfo: {'txHexLength': txHex.length},
+      );
       if (e is ApiException) {
         rethrow;
       }

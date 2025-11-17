@@ -6,6 +6,7 @@ import '../models/utxo.dart';
 import '../services/key_service.dart';
 import '../services/api_service.dart';
 import '../utils/networks.dart';
+import '../utils/debug_logger.dart';
 import '../services/key_service.dart' as key_service;
 
 /// Provider for managing wallets, accounts, addresses, and balances.
@@ -132,7 +133,17 @@ class WalletProvider extends ChangeNotifier {
       notifyListeners();
       
       return wallet;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.createWallet',
+        additionalInfo: {
+          'label': label,
+          'network': network.name,
+          'wordCount': wordCount,
+        },
+      );
       _setError('Failed to create wallet: $e');
       _setLoading(false);
       notifyListeners();
@@ -189,7 +200,16 @@ class WalletProvider extends ChangeNotifier {
       notifyListeners();
       
       return wallet;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.importWallet',
+        additionalInfo: {
+          'label': label,
+          'network': network.name,
+        },
+      );
       _setError('Failed to import wallet: $e');
       _setLoading(false);
       notifyListeners();
@@ -229,7 +249,16 @@ class WalletProvider extends ChangeNotifier {
       notifyListeners();
       
       return wallet;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.importWatchOnlyWallet',
+        additionalInfo: {
+          'label': label,
+          'network': network.name,
+        },
+      );
       _setError('Failed to import watch-only wallet: $e');
       _setLoading(false);
       notifyListeners();
@@ -269,7 +298,13 @@ class WalletProvider extends ChangeNotifier {
       
       _setLoading(false);
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.removeWallet',
+        additionalInfo: {'walletId': walletId},
+      );
       _setError('Failed to remove wallet: $e');
       _setLoading(false);
       notifyListeners();
@@ -368,7 +403,16 @@ class WalletProvider extends ChangeNotifier {
       notifyListeners();
       
       return account;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.createAccount',
+        additionalInfo: {
+          'label': label,
+          'walletId': _currentWallet?.id,
+        },
+      );
       _setError('Failed to create account: $e');
       _setLoading(false);
       notifyListeners();
@@ -487,8 +531,17 @@ class WalletProvider extends ChangeNotifier {
       
       _syncStatus[accountId] = false;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _syncStatus[accountId] = false;
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.fetchAccountUtxos',
+        additionalInfo: {
+          'accountId': accountId,
+          'addressCount': account.addresses.length,
+        },
+      );
       _setError('Failed to fetch UTXOs: $e');
       notifyListeners();
       rethrow;
