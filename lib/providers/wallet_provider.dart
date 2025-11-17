@@ -287,6 +287,12 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Deselects the current wallet (shows wallet list).
+  void deselectWallet() {
+    _currentWallet = null;
+    notifyListeners();
+  }
+
   /// Creates a new account for the current wallet.
   ///
   /// [label] is the account name.
