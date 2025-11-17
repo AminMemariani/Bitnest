@@ -91,21 +91,23 @@ class WalletProvider extends ChangeNotifier {
   /// [network] is the Bitcoin network (mainnet/testnet).
   /// [wordCount] is the mnemonic word count (12 or 24, default: 24).
   /// [derivationScheme] is the derivation scheme (default: nativeSegwit).
+  /// [mnemonic] is an optional mnemonic to use instead of generating a new one.
   Future<Wallet> createWallet({
     required String label,
     required BitcoinNetwork network,
     int wordCount = 24,
     key_service.DerivationScheme derivationScheme = key_service.DerivationScheme.nativeSegwit,
+    String? mnemonic,
   }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      // Generate mnemonic
-      final mnemonic = _keyService.generateMnemonic(wordCount: wordCount);
+      // Generate mnemonic if not provided
+      final walletMnemonic = mnemonic ?? _keyService.generateMnemonic(wordCount: wordCount);
       
       // Derive seed
-      final seed = _keyService.mnemonicToSeed(mnemonic);
+      final seed = _keyService.mnemonicToSeed(walletMnemonic);
       
       // Derive master keys
       final masterXpub = _keyService.deriveMasterXpub(seed, network);
@@ -117,13 +119,13 @@ class WalletProvider extends ChangeNotifier {
         network: network,
         xpub: masterXpub,
         xprv: masterXprv,
-        mnemonic: mnemonic,
+        mnemonic: walletMnemonic,
       );
       
       _wallets.add(wallet);
       
       // Store mnemonic and seed securely first
-      await _keyService.storeMnemonic(wallet.id, mnemonic);
+      await _keyService.storeMnemonic(wallet.id, walletMnemonic);
       await _keyService.storeSeed(wallet.id, seed);
       
       // Create default account (pass seed directly to avoid retrieval)
