@@ -1,7 +1,7 @@
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip32/bip32.dart' as bip32;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pointycastle/digests/sha256.dart';
@@ -9,6 +9,7 @@ import 'package:pointycastle/digests/ripemd160.dart';
 import 'package:hex/hex.dart';
 import 'package:bs58check/bs58check.dart' as bs58;
 import '../utils/networks.dart';
+import '../utils/debug_logger.dart';
 
 /// Derivation scheme types for Bitcoin addresses.
 enum DerivationScheme {
@@ -34,6 +35,9 @@ enum DerivationScheme {
 class KeyService {
   final FlutterSecureStorage _storage;
   final LocalAuthentication _localAuth;
+  
+  // Fallback in-memory storage for development when Keychain fails
+  final Map<String, String> _fallbackStorage = {};
 
   // Storage keys
   static const String _seedStorageKey = 'wallet_seed_';
@@ -226,10 +230,22 @@ class KeyService {
 
     // Convert seed to base64 for storage
     final seedBase64 = _bytesToBase64(seed);
-    await _storage.write(
-      key: '$_seedStorageKey$walletId',
-      value: seedBase64,
-    );
+    try {
+      await _storage.write(key: '$_seedStorageKey$walletId', value: seedBase64);
+    } catch (e, stackTrace) {
+      // Fallback to in-memory storage if Keychain access fails (development)
+      if (kDebugMode) {
+        DebugLogger.logException(
+          e,
+          stackTrace,
+          context: 'KeyService.storeSeed (Keychain failed, using fallback)',
+          additionalInfo: {'walletId': walletId},
+        );
+        _fallbackStorage['$_seedStorageKey$walletId'] = seedBase64;
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Retrieves and decrypts a seed from secure storage.
@@ -250,7 +266,23 @@ class KeyService {
       }
     }
 
-    final seedBase64 = await _storage.read(key: '$_seedStorageKey$walletId');
+    String? seedBase64;
+    try {
+      seedBase64 = await _storage.read(key: '$_seedStorageKey$walletId');
+    } catch (e, stackTrace) {
+      // Fallback to in-memory storage if Keychain access fails (development)
+      if (kDebugMode) {
+        DebugLogger.logException(
+          e,
+          stackTrace,
+          context: 'KeyService.retrieveSeed (Keychain failed, using fallback)',
+          additionalInfo: {'walletId': walletId},
+        );
+        seedBase64 = _fallbackStorage['$_seedStorageKey$walletId'];
+      } else {
+        rethrow;
+      }
+    }
     if (seedBase64 == null) {
       return null;
     }
@@ -277,10 +309,25 @@ class KeyService {
       }
     }
 
-    await _storage.write(
-      key: '$_mnemonicStorageKey$walletId',
-      value: mnemonic,
-    );
+    try {
+      await _storage.write(
+        key: '$_mnemonicStorageKey$walletId',
+        value: mnemonic,
+      );
+    } catch (e, stackTrace) {
+      // Fallback to in-memory storage if Keychain access fails (development)
+      if (kDebugMode) {
+        DebugLogger.logException(
+          e,
+          stackTrace,
+          context: 'KeyService.storeMnemonic (Keychain failed, using fallback)',
+          additionalInfo: {'walletId': walletId},
+        );
+        _fallbackStorage['$_mnemonicStorageKey$walletId'] = mnemonic;
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Retrieves and decrypts a mnemonic from secure storage.
@@ -301,15 +348,48 @@ class KeyService {
       }
     }
 
-    return await _storage.read(key: '$_mnemonicStorageKey$walletId');
+    try {
+      return await _storage.read(key: '$_mnemonicStorageKey$walletId');
+    } catch (e, stackTrace) {
+      // Fallback to in-memory storage if Keychain access fails (development)
+      if (kDebugMode) {
+        DebugLogger.logException(
+          e,
+          stackTrace,
+          context:
+              'KeyService.retrieveMnemonic (Keychain failed, using fallback)',
+          additionalInfo: {'walletId': walletId},
+        );
+        return _fallbackStorage['$_mnemonicStorageKey$walletId'];
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Deletes stored seed and mnemonic for a wallet.
   ///
   /// [walletId] is the unique wallet identifier.
   Future<void> deleteWalletData(String walletId) async {
-    await _storage.delete(key: '$_seedStorageKey$walletId');
-    await _storage.delete(key: '$_mnemonicStorageKey$walletId');
+    try {
+      await _storage.delete(key: '$_seedStorageKey$walletId');
+      await _storage.delete(key: '$_mnemonicStorageKey$walletId');
+    } catch (e, stackTrace) {
+      // Fallback: remove from in-memory storage if Keychain access fails (development)
+      if (kDebugMode) {
+        DebugLogger.logException(
+          e,
+          stackTrace,
+          context:
+              'KeyService.deleteWalletData (Keychain failed, using fallback)',
+          additionalInfo: {'walletId': walletId},
+        );
+        _fallbackStorage.remove('$_seedStorageKey$walletId');
+        _fallbackStorage.remove('$_mnemonicStorageKey$walletId');
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Checks if biometric authentication is available on the device.
