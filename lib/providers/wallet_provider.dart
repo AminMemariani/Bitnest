@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../models/account.dart';
@@ -120,12 +121,12 @@ class WalletProvider extends ChangeNotifier {
       
       _wallets.add(wallet);
       
-      // Create default account
-      await _createDefaultAccount(wallet, derivationScheme);
-      
-      // Store mnemonic securely
+      // Store mnemonic and seed securely first
       await _keyService.storeMnemonic(wallet.id, mnemonic);
       await _keyService.storeSeed(wallet.id, seed);
+      
+      // Create default account (pass seed directly to avoid retrieval)
+      await _createDefaultAccount(wallet, derivationScheme, seed: seed);
       
       _setLoading(false);
       notifyListeners();
@@ -177,12 +178,12 @@ class WalletProvider extends ChangeNotifier {
       
       _wallets.add(wallet);
       
-      // Create default account
-      await _createDefaultAccount(wallet, derivationScheme);
-      
-      // Store mnemonic securely
+      // Store mnemonic and seed securely first
       await _keyService.storeMnemonic(wallet.id, mnemonic);
       await _keyService.storeSeed(wallet.id, seed);
+      
+      // Create default account (pass seed directly to avoid retrieval)
+      await _createDefaultAccount(wallet, derivationScheme, seed: seed);
       
       _setLoading(false);
       notifyListeners();
@@ -525,19 +526,25 @@ class WalletProvider extends ChangeNotifier {
 
   Future<void> _createDefaultAccount(
     Wallet wallet,
-    key_service.DerivationScheme derivationScheme,
-  ) async {
+    key_service.DerivationScheme derivationScheme, {
+    Uint8List? seed,
+  }) async {
     Account account;
     
     if (wallet.xprv != null) {
       // Full wallet - derive from seed
-      final seed = await _keyService.retrieveSeed(wallet.id);
-      if (seed == null) {
-        throw StateError('Wallet seed not found');
+      Uint8List? walletSeed = seed;
+      
+      // If seed not provided, retrieve from storage
+      if (walletSeed == null) {
+        walletSeed = await _keyService.retrieveSeed(wallet.id);
+        if (walletSeed == null) {
+          throw StateError('Wallet seed not found');
+        }
       }
       
       final accountXpub = _keyService.deriveAccountXpub(
-        seed,
+        walletSeed,
         derivationScheme,
         wallet.network,
         accountIndex: 0,
