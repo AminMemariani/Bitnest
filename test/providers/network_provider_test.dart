@@ -22,7 +22,7 @@ void main() {
     test('provides correct API endpoint for mainnet', () {
       expect(
         provider.apiEndpoint,
-        'https://blockstream.info/api',
+        'https://bitcoin-rpc.publicnode.com',
       );
     });
 
@@ -34,7 +34,7 @@ void main() {
       expect(provider.isTestnet, isTrue);
       expect(
         provider.apiEndpoint,
-        'https://blockstream.info/testnet/api',
+        'https://bitcoin-testnet-rpc.publicnode.com',
       );
     });
 

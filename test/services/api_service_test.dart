@@ -10,26 +10,26 @@ void main() {
     test('initializes with mainnet by default', () {
       final service = MockApiService();
       expect(service.currentNetwork, BitcoinNetwork.mainnet);
-      expect(service.baseUrl, 'https://blockstream.info/api');
+      expect(service.baseUrl, 'https://bitcoin-rpc.publicnode.com');
     });
 
     test('initializes with specified network', () {
       final service = MockApiService(initialNetwork: BitcoinNetwork.testnet);
       expect(service.currentNetwork, BitcoinNetwork.testnet);
-      expect(service.baseUrl, 'https://blockstream.info/testnet/api');
+      expect(service.baseUrl, 'https://bitcoin-testnet-rpc.publicnode.com');
     });
 
     test('switches network and updates base URL', () {
       final service = MockApiService();
-      expect(service.baseUrl, 'https://blockstream.info/api');
+      expect(service.baseUrl, 'https://bitcoin-rpc.publicnode.com');
 
       service.setNetwork(BitcoinNetwork.testnet);
       expect(service.currentNetwork, BitcoinNetwork.testnet);
-      expect(service.baseUrl, 'https://blockstream.info/testnet/api');
+      expect(service.baseUrl, 'https://bitcoin-testnet-rpc.publicnode.com');
 
       service.setNetwork(BitcoinNetwork.mainnet);
       expect(service.currentNetwork, BitcoinNetwork.mainnet);
-      expect(service.baseUrl, 'https://blockstream.info/api');
+      expect(service.baseUrl, 'https://bitcoin-rpc.publicnode.com');
     });
   });
 
@@ -237,7 +237,7 @@ void main() {
 
       // Switch to testnet
       service.setNetwork(BitcoinNetwork.testnet);
-      expect(service.baseUrl, 'https://blockstream.info/testnet/api');
+      expect(service.baseUrl, 'https://bitcoin-testnet-rpc.publicnode.com');
 
       // Set up data for testnet address
       const testnetAddress = 'tb1qtestnet123';
@@ -245,7 +245,7 @@ void main() {
 
       // Switch back to mainnet
       service.setNetwork(BitcoinNetwork.mainnet);
-      expect(service.baseUrl, 'https://blockstream.info/api');
+      expect(service.baseUrl, 'https://bitcoin-rpc.publicnode.com');
     });
   });
 }

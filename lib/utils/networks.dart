@@ -28,8 +28,8 @@ class MainnetConfig {
   /// Format: m/84'/0'/0' (BIP84 - Native Segwit)
   static const String defaultDerivationPath = "m/84'/0'/0'";
 
-  /// Example API endpoint (replace with your preferred blockchain API)
-  static const String apiEndpoint = 'https://blockstream.info/api';
+  /// API endpoint for Bitcoin mainnet
+  static const String apiEndpoint = 'https://bitcoin-rpc.publicnode.com';
 
   /// Network magic bytes (for P2P protocol)
   static const int magicBytes = 0xD9B4BEF9;
@@ -53,8 +53,9 @@ class TestnetConfig {
   /// Format: m/84'/1'/0' (BIP84 - Native Segwit on testnet)
   static const String defaultDerivationPath = "m/84'/1'/0'";
 
-  /// Example API endpoint (replace with your preferred blockchain API)
-  static const String apiEndpoint = 'https://blockstream.info/testnet/api';
+  /// API endpoint for Bitcoin testnet
+  static const String apiEndpoint =
+      'https://bitcoin-testnet-rpc.publicnode.com';
 
   /// Network magic bytes (for P2P protocol)
   static const int magicBytes = 0x0709110B;
