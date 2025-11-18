@@ -82,6 +82,8 @@ class BitNestApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF977439),
             brightness: Brightness.light,
+          ).copyWith(
+            primary: const Color(0xFFBC985E),
           ),
           useMaterial3: true,
         ),
@@ -89,6 +91,8 @@ class BitNestApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF977439),
             brightness: Brightness.dark,
+          ).copyWith(
+            primary: const Color(0xFFBC985E),
           ),
           useMaterial3: true,
         ),
