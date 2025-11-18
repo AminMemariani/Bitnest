@@ -516,8 +516,16 @@ class KeyService {
     return '${hrp}1$encoded';
   }
 
-  /// Authenticates the user with biometrics.
-  Future<bool> _authenticateWithBiometrics() async {
+  /// Authenticates the user with biometrics (public method).
+  Future<bool> authenticateWithBiometrics({
+    String reason = 'Please authenticate',
+  }) async {
+    return await _authenticateWithBiometrics(reason: reason);
+  }
+
+  Future<bool> _authenticateWithBiometrics({
+    String reason = 'Authenticate to access wallet',
+  }) async {
     try {
       final isAvailable = await isBiometricAvailable();
       if (!isAvailable) {
@@ -525,7 +533,7 @@ class KeyService {
       }
 
       return await _localAuth.authenticate(
-        localizedReason: 'Authenticate to access wallet',
+        localizedReason: reason,
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,

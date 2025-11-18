@@ -295,4 +295,16 @@ class MockKeyService extends _i1.Mock implements _i2.KeyService {
             ),
           )
           as _i6.Future<List<_i7.BiometricType>>);
+
+  @override
+  _i6.Future<bool> authenticateWithBiometrics({
+    String? reason = 'Please authenticate',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#authenticateWithBiometrics, [], {
+              #reason: reason,
+            }),
+            returnValue: _i6.Future<bool>.value(false),
+          )
+          as _i6.Future<bool>);
 }

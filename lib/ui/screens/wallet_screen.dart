@@ -5,6 +5,7 @@ import '../../providers/wallet_provider.dart';
 import '../../providers/network_provider.dart';
 import '../../utils/networks.dart';
 import '../../services/key_service.dart';
+import 'send_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -297,12 +298,32 @@ class _WalletScreenState extends State<WalletScreen> {
                                         ),
                                       )),
                                   const SizedBox(height: 8),
-                                  ElevatedButton.icon(
-                                    onPressed: () => walletProvider.deriveNextReceiveAddress(
-                                      account.id,
-                                    ),
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Derive Next Address'),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () => walletProvider.deriveNextReceiveAddress(
+                                            account.id,
+                                          ),
+                                          icon: const Icon(Icons.add),
+                                          label: const Text('Derive Next Address'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => SendScreen(account: account),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.send),
+                                          label: const Text('Send'),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ],

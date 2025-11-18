@@ -4,8 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'providers/wallet_provider.dart';
 import 'providers/network_provider.dart';
+import 'providers/send_provider.dart';
 import 'services/key_service.dart';
 import 'services/api_service.dart';
+import 'services/transaction_service.dart';
+import 'services/broadcast_service.dart';
 import 'ui/screens/wallet_screen.dart';
 import 'utils/debug_logger.dart';
 
@@ -63,6 +66,13 @@ class BitNestApp extends StatelessWidget {
     // Initialize services
     final keyService = KeyService();
     final apiService = ApiService();
+    final transactionService = TransactionService(
+      keyService: keyService,
+      apiService: apiService,
+    );
+    final broadcastService = BroadcastService(
+      apiService: apiService,
+    );
 
     return MultiProvider(
       providers: [
@@ -74,6 +84,24 @@ class BitNestApp extends StatelessWidget {
             keyService: keyService,
             apiService: apiService,
           ),
+        ),
+        ChangeNotifierProxyProvider<WalletProvider, SendProvider>(
+          create: (_) => SendProvider(
+            transactionService: transactionService,
+            broadcastService: broadcastService,
+            keyService: keyService,
+            walletProvider: WalletProvider(
+              keyService: keyService,
+              apiService: apiService,
+            ),
+          ),
+          update: (_, walletProvider, previous) => previous ??
+              SendProvider(
+                transactionService: transactionService,
+                broadcastService: broadcastService,
+                keyService: keyService,
+                walletProvider: walletProvider,
+              ),
         ),
       ],
       child: MaterialApp(
