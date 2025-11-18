@@ -6,6 +6,7 @@ import '../../providers/network_provider.dart';
 import '../../utils/networks.dart';
 import '../../services/key_service.dart';
 import 'send_screen.dart';
+import 'receive_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -302,11 +303,21 @@ class _WalletScreenState extends State<WalletScreen> {
                                     children: [
                                       Expanded(
                                         child: ElevatedButton.icon(
-                                          onPressed: () => walletProvider.deriveNextReceiveAddress(
-                                            account.id,
-                                          ),
-                                          icon: const Icon(Icons.add),
-                                          label: const Text('Derive Next Address'),
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => ReceiveScreen(
+                                                  account: account,
+                                                  onGenerateNextAddress: () =>
+                                                      walletProvider.deriveNextReceiveAddress(
+                                                    account.id,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.qr_code),
+                                          label: const Text('Receive'),
                                         ),
                                       ),
                                       const SizedBox(width: 8),

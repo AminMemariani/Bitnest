@@ -508,7 +508,7 @@ class KeyService {
     }
     
     // Bech32 charset
-    const charset = 'qpzry9x8gf2tvdw0s3jn54kce5m';
+    const charset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
     final encoded = values.map((v) => charset[v]).join();
     
     // Simple bech32 encoding (full implementation would include checksum)
