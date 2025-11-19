@@ -106,3 +106,14 @@ class NetworkConfig {
     }
   }
 }
+
+/// Utility helpers for constructing explorer URLs.
+class NetworkExplorer {
+  static String transactionUrl(BitcoinNetwork network, String txid) {
+    final base = switch (network) {
+      BitcoinNetwork.mainnet => 'https://mempool.space/tx/',
+      BitcoinNetwork.testnet => 'https://mempool.space/testnet/tx/',
+    };
+    return '$base$txid';
+  }
+}

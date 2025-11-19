@@ -7,6 +7,7 @@ import '../../utils/networks.dart';
 import '../../services/key_service.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
+import 'transactions_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -299,40 +300,50 @@ class _WalletScreenState extends State<WalletScreen> {
                                         ),
                                       )),
                                   const SizedBox(height: 8),
-                                  Row(
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
                                     children: [
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) => ReceiveScreen(
-                                                  account: account,
-                                                  onGenerateNextAddress: () =>
-                                                      walletProvider.deriveNextReceiveAddress(
-                                                    account.id,
-                                                  ),
+                                      _AccountActionButton(
+                                        label: 'Receive',
+                                        icon: Icons.qr_code,
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => ReceiveScreen(
+                                                account: account,
+                                                onGenerateNextAddress: () =>
+                                                    walletProvider.deriveNextReceiveAddress(
+                                                  account.id,
                                                 ),
                                               ),
-                                            );
-                                          },
-                                          icon: const Icon(Icons.qr_code),
-                                          label: const Text('Receive'),
-                                        ),
+                                            ),
+                                          );
+                                        },
                                       ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) => SendScreen(account: account),
+                                      _AccountActionButton(
+                                        label: 'Send',
+                                        icon: Icons.send,
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => SendScreen(account: account),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      _AccountActionButton(
+                                        label: 'Transactions',
+                                        icon: Icons.list_alt,
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => TransactionsScreen(
+                                                account: account,
                                               ),
-                                            );
-                                          },
-                                          icon: const Icon(Icons.send),
-                                          label: const Text('Send'),
-                                        ),
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -668,6 +679,30 @@ class _WalletScreenState extends State<WalletScreen> {
             child: const Text('Create'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AccountActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _AccountActionButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(label),
       ),
     );
   }

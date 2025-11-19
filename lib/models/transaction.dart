@@ -86,12 +86,14 @@ class TxInput {
   final int vout;
   final BigInt value;
   final String? scriptSig;
+  final String? address;
 
   TxInput({
     required this.txid,
     required this.vout,
     required this.value,
     this.scriptSig,
+    this.address,
   });
 
   factory TxInput.fromJson(Map<String, dynamic> json) {
@@ -105,6 +107,8 @@ class TxInput {
       vout: json['vout'] as int,
       value: BigInt.from(value),
       scriptSig: json['scriptsig'] as String? ?? json['scriptSig'] as String?,
+      address: json['prevout']?['scriptpubkey_address'] as String? ??
+          json['prevout']?['address'] as String?,
     );
   }
 
@@ -114,6 +118,7 @@ class TxInput {
       'vout': vout,
       'value': value.toInt(),
       'scriptsig': scriptSig,
+      'address': address,
     };
   }
 }

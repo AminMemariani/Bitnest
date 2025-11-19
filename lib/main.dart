@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'providers/wallet_provider.dart';
 import 'providers/network_provider.dart';
 import 'providers/send_provider.dart';
+import 'providers/transactions_provider.dart';
 import 'services/key_service.dart';
 import 'services/api_service.dart';
 import 'services/transaction_service.dart';
@@ -86,22 +87,28 @@ class BitNestApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProxyProvider<WalletProvider, SendProvider>(
-          create: (_) => SendProvider(
+          create: (context) => SendProvider(
             transactionService: transactionService,
             broadcastService: broadcastService,
             keyService: keyService,
-            walletProvider: WalletProvider(
-              keyService: keyService,
-              apiService: apiService,
-            ),
+            walletProvider: context.read<WalletProvider>(),
           ),
-          update: (_, walletProvider, previous) => previous ??
-              SendProvider(
-                transactionService: transactionService,
-                broadcastService: broadcastService,
-                keyService: keyService,
-                walletProvider: walletProvider,
-              ),
+          update: (_, walletProvider, sendProvider) {
+            final provider = sendProvider ??
+                SendProvider(
+                  transactionService: transactionService,
+                  broadcastService: broadcastService,
+                  keyService: keyService,
+                  walletProvider: walletProvider,
+                );
+            provider.updateWalletProvider(walletProvider);
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) => TransactionsProvider(
+            apiService: apiService,
+          ),
         ),
       ],
       child: MaterialApp(

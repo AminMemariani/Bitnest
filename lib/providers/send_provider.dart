@@ -21,7 +21,7 @@ class SendProvider extends ChangeNotifier {
   final TransactionService _transactionService;
   final BroadcastService _broadcastService;
   final KeyService _keyService;
-  final WalletProvider _walletProvider;
+  WalletProvider _walletProvider;
 
   Account? _selectedAccount;
   List<UTXO> _selectedUtxos = [];
@@ -43,6 +43,10 @@ class SendProvider extends ChangeNotifier {
         _broadcastService = broadcastService,
         _keyService = keyService,
         _walletProvider = walletProvider;
+
+  void updateWalletProvider(WalletProvider provider) {
+    _walletProvider = provider;
+  }
 
   // Getters
   Account? get selectedAccount => _selectedAccount;
