@@ -9,7 +9,6 @@ import 'package:bitnest/providers/wallet_provider.dart';
 import 'package:bitnest/services/key_service.dart';
 import 'package:bitnest/services/api_service.dart';
 import 'package:bitnest/models/wallet.dart';
-import 'package:bitnest/utils/networks.dart';
 import 'package:bitnest/ui/screens/settings_screen.dart';
 
 void main() {
@@ -121,7 +120,7 @@ void main() {
 
       // Without a wallet, the Wallet section should not be visible
       expect(find.text('Wallet'), findsNothing);
-    }, skip: 'Requires wallet creation through provider');
+    }, skip: true); // Requires wallet creation through provider
 
     testWidgets('hides wallet section when no wallet', (tester) async {
       await tester.pumpWidget(buildTestWidget());
@@ -149,9 +148,11 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // Find the theme ListTile and tap the PopupMenuButton
-      final themeTile = find.text('Theme');
-      await tester.tap(themeTile);
+      // Find the PopupMenuButton for theme (it's in the trailing of the Theme ListTile)
+      final popupMenuButtons = find.byType(PopupMenuButton<ThemeMode>);
+      expect(popupMenuButtons, findsOneWidget);
+
+      await tester.tap(popupMenuButtons.first);
       await tester.pumpAndSettle();
 
       // Look for PopupMenuItem widgets
@@ -162,9 +163,11 @@ void main() {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // Find the currency ListTile and tap the PopupMenuButton
-      final currencyTile = find.text('Currency');
-      await tester.tap(currencyTile);
+      // Find the PopupMenuButton for currency (it's in the trailing of the Currency ListTile)
+      final popupMenuButtons = find.byType(PopupMenuButton<String>);
+      expect(popupMenuButtons, findsOneWidget);
+
+      await tester.tap(popupMenuButtons.first);
       await tester.pumpAndSettle();
 
       // Look for PopupMenuItem widgets

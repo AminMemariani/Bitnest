@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,8 @@ class SettingsProvider extends ChangeNotifier {
 
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
+  bool _isInitialized = false;
+  final Completer<void> _initializationCompleter = Completer<void>();
 
   ThemeMode _themeMode = ThemeMode.system;
   String _currency = 'BTC';
@@ -25,6 +28,14 @@ class SettingsProvider extends ChangeNotifier {
   })  : _prefs = prefs,
         _secureStorage = secureStorage ?? const FlutterSecureStorage() {
     _loadSettings();
+  }
+
+  /// Waits for settings to be loaded from storage.
+  /// Useful in tests to ensure initialization is complete.
+  Future<void> waitForInitialization() async {
+    if (!_isInitialized) {
+      await _initializationCompleter.future;
+    }
   }
 
   ThemeMode get themeMode => _themeMode;
@@ -51,9 +62,18 @@ class SettingsProvider extends ChangeNotifier {
       _biometricsEnabled = _prefs.getBool(_prefsKeyBiometricsEnabled) ?? false;
 
       // Check if PIN exists
-      final pinHash = await _secureStorage.read(key: _secureStorageKeyPin);
-      _hasPin = pinHash != null && pinHash.isNotEmpty;
+      try {
+        final pinHash = await _secureStorage.read(key: _secureStorageKeyPin);
+        _hasPin = pinHash != null && pinHash.isNotEmpty;
+      } catch (e) {
+        // FlutterSecureStorage may not be available in tests
+        _hasPin = false;
+      }
 
+      _isInitialized = true;
+      if (!_initializationCompleter.isCompleted) {
+        _initializationCompleter.complete();
+      }
       notifyListeners();
     } catch (e) {
       // Use defaults if loading fails
@@ -61,6 +81,10 @@ class SettingsProvider extends ChangeNotifier {
       _currency = 'BTC';
       _biometricsEnabled = false;
       _hasPin = false;
+      _isInitialized = true;
+      if (!_initializationCompleter.isCompleted) {
+        _initializationCompleter.complete();
+      }
     }
   }
 
