@@ -8,6 +8,7 @@ import '../../services/key_service.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'transactions_screen.dart';
+import 'settings_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -23,27 +24,16 @@ class _WalletScreenState extends State<WalletScreen> {
       appBar: AppBar(
         title: const Text('BitNest'),
         actions: [
-          Consumer<NetworkProvider>(
-            builder: (context, networkProvider, _) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Center(
-                  child: Row(
-                    children: [
-                      Text(
-                        networkProvider.isMainnet ? 'Mainnet' : 'Testnet',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(width: 8),
-                      Switch.adaptive(
-                        value: networkProvider.isTestnet,
-                        onChanged: (_) => networkProvider.toggleNetwork(),
-                      ),
-                    ],
-                  ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
                 ),
               );
             },
+            tooltip: 'Settings',
           ),
         ],
       ),
