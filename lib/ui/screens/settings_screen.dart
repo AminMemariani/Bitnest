@@ -15,7 +15,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Semantics(
+          label: 'Settings',
+          header: true,
+          child: const Text('Settings'),
+        ),
       ),
       body: ListView(
         children: [
@@ -37,14 +41,23 @@ class _NetworkSection extends StatelessWidget {
         return _Section(
           title: 'Network',
           children: [
-            ListTile(
-              title: const Text('Network'),
-              subtitle: Text(networkProvider.networkName),
-              trailing: Switch.adaptive(
-                value: networkProvider.isTestnet,
-                onChanged: (value) {
-                  networkProvider.toggleNetwork();
-                },
+            Semantics(
+              label: 'Network selection. Currently using ${networkProvider.networkName}',
+              value: networkProvider.networkName,
+              child: ListTile(
+                title: const Text('Network'),
+                subtitle: Text(networkProvider.networkName),
+                trailing: Semantics(
+                  label: networkProvider.isTestnet
+                      ? 'Switch to mainnet'
+                      : 'Switch to testnet',
+                  child: Switch.adaptive(
+                    value: networkProvider.isTestnet,
+                    onChanged: (value) {
+                      networkProvider.toggleNetwork();
+                    },
+                  ),
+                ),
               ),
             ),
             Padding(
@@ -71,28 +84,36 @@ class _DisplaySection extends StatelessWidget {
         return _Section(
           title: 'Display',
           children: [
-            ListTile(
-              title: const Text('Theme'),
-              subtitle: Text(_getThemeModeLabel(settingsProvider.themeMode)),
-              trailing: PopupMenuButton<ThemeMode>(
-                icon: const Icon(Icons.arrow_drop_down),
-                onSelected: (mode) {
-                  settingsProvider.setThemeMode(mode);
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: ThemeMode.system,
-                    child: Text('System'),
+            Semantics(
+              label: 'Theme selection. Current theme: ${_getThemeModeLabel(settingsProvider.themeMode)}',
+              value: _getThemeModeLabel(settingsProvider.themeMode),
+              child: ListTile(
+                title: const Text('Theme'),
+                subtitle: Text(_getThemeModeLabel(settingsProvider.themeMode)),
+                trailing: Semantics(
+                  label: 'Change theme',
+                  button: true,
+                  child: PopupMenuButton<ThemeMode>(
+                    icon: const Icon(Icons.arrow_drop_down),
+                    onSelected: (mode) {
+                      settingsProvider.setThemeMode(mode);
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: ThemeMode.system,
+                        child: Text('System'),
+                      ),
+                      const PopupMenuItem(
+                        value: ThemeMode.light,
+                        child: Text('Light'),
+                      ),
+                      const PopupMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text('Dark'),
+                      ),
+                    ],
                   ),
-                  const PopupMenuItem(
-                    value: ThemeMode.light,
-                    child: Text('Light'),
-                  ),
-                  const PopupMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text('Dark'),
-                  ),
-                ],
+                ),
               ),
             ),
             ListTile(

@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../utils/networks.dart';
+import '../../utils/responsive.dart';
 import 'wallet_screen.dart';
 
 /// Onboarding screen for first-time users to create or import a wallet.
+///
+/// Features:
+/// - Welcome page with app introduction
+/// - Create/Import wallet selection
+/// - Responsive layout for all screen sizes
+/// - Full accessibility support with semantic labels
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onComplete;
 
@@ -26,8 +33,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final _ = Theme.of(context);
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -36,9 +41,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             if (_currentPage == 0)
               Align(
                 alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: () => _navigateToWallet(context),
-                  child: const Text('Skip'),
+                child: Semantics(
+                  label: 'Skip onboarding and go to wallet',
+                  button: true,
+                  child: TextButton(
+                    onPressed: () => _navigateToWallet(context),
+                    child: const Text('Skip'),
+                  ),
                 ),
               ),
             // Page content
@@ -64,13 +73,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             // Page indicator
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  2,
-                  (index) => _PageIndicator(isActive: index == _currentPage),
+            Semantics(
+              label: 'Page ${_currentPage + 1} of 2',
+              child: Padding(
+                padding: Breakpoints.responsivePadding(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    2,
+                    (index) => _PageIndicator(isActive: index == _currentPage),
+                  ),
                 ),
               ),
             ),
@@ -101,41 +113,73 @@ class _WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLarge = Breakpoints.isLarge(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.account_balance_wallet,
-            size: 120,
-            color: theme.colorScheme.primary,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Breakpoints.maxContentWidth(context),
+        ),
+        child: Padding(
+          padding: Breakpoints.responsivePadding(context),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Semantics(
+                label: 'BitNest wallet icon',
+                child: Icon(
+                  Icons.account_balance_wallet,
+                  size: isLarge ? 140 : 120,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              SizedBox(height: isLarge ? 56 : 48),
+              Semantics(
+                header: true,
+                child: Text(
+                  'Welcome to BitNest',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Your Bitcoin, your control.\n'
+                'A secure, self-custody wallet that puts you in charge.',
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'BitNest keeps your Bitcoin safe with industry-standard security. '
+                'Your keys, your coins—always.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: isLarge ? 56 : 48),
+              Semantics(
+                label: 'Get started with BitNest',
+                button: true,
+                child: ElevatedButton.icon(
+                  onPressed: onNext,
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('Get Started'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isLarge ? 40 : 32,
+                      vertical: isLarge ? 20 : 16,
+                    ),
+                    minimumSize: Size(isLarge ? 200 : 160, isLarge ? 56 : 48),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 48),
-          Text(
-            'Welcome to BitNest',
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'A secure Bitcoin wallet for managing your digital assets with ease.',
-            style: theme.textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 48),
-          ElevatedButton.icon(
-            onPressed: onNext,
-            icon: const Icon(Icons.arrow_forward),
-            label: const Text('Get Started'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -150,88 +194,91 @@ class _CreateOrImportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    final isLarge = Breakpoints.isLarge(context);
+    final isMedium = Breakpoints.isMedium(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Create or Import Wallet',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 48),
-          // Create Wallet Card
-          Card(
-            elevation: 2,
-            child: InkWell(
-              onTap: () => _showCreateWalletDialog(context, walletProvider),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Breakpoints.maxContentWidth(context),
+        ),
+        child: Padding(
+          padding: Breakpoints.responsivePadding(context),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  'Create or Import Wallet',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: isLarge ? 56 : 48),
+              // Cards layout: side-by-side on large screens, stacked on small
+              if (isMedium || isLarge)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.add_circle_outline,
-                      size: 64,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Create New Wallet',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: _WalletOptionCard(
+                        title: 'Create New Wallet',
+                        description:
+                            'Generate a new wallet with a secure recovery phrase. '
+                            'You\'ll be the only one with access to your funds.',
+                        icon: Icons.add_circle_outline,
+                        iconColor: theme.colorScheme.primary,
+                        onTap: () =>
+                            _showCreateWalletDialog(context, walletProvider),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Generate a new wallet with a recovery phrase',
-                      style: theme.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
+                    SizedBox(width: isLarge ? 24 : 16),
+                    Expanded(
+                      child: _WalletOptionCard(
+                        title: 'Import Existing Wallet',
+                        description:
+                            'Restore your wallet using your recovery phrase. '
+                            'Make sure you\'re in a private location before entering it.',
+                        icon: Icons.download_outlined,
+                        iconColor: theme.colorScheme.secondary,
+                        onTap: () =>
+                            _showImportWalletDialog(context, walletProvider),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    _WalletOptionCard(
+                      title: 'Create New Wallet',
+                      description:
+                          'Generate a new wallet with a secure recovery phrase. '
+                          'You\'ll be the only one with access to your funds.',
+                      icon: Icons.add_circle_outline,
+                      iconColor: theme.colorScheme.primary,
+                      onTap: () =>
+                          _showCreateWalletDialog(context, walletProvider),
+                    ),
+                    const SizedBox(height: 24),
+                    _WalletOptionCard(
+                      title: 'Import Existing Wallet',
+                      description:
+                          'Restore your wallet using your recovery phrase. '
+                          'Make sure you\'re in a private location before entering it.',
+                      icon: Icons.download_outlined,
+                      iconColor: theme.colorScheme.secondary,
+                      onTap: () =>
+                          _showImportWalletDialog(context, walletProvider),
                     ),
                   ],
                 ),
-              ),
-            ),
+            ],
           ),
-          const SizedBox(height: 24),
-          // Import Wallet Card
-          Card(
-            elevation: 2,
-            child: InkWell(
-              onTap: () => _showImportWalletDialog(context, walletProvider),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.download_outlined,
-                      size: 64,
-                      color: theme.colorScheme.secondary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Import Wallet',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Restore from an existing recovery phrase',
-                      style: theme.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -242,21 +289,36 @@ class _CreateOrImportPage extends StatelessWidget {
   ) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Create New Wallet'),
-        content: const Text(
-          'A new wallet will be created. Make sure to securely backup your recovery phrase.',
+      builder: (dialogContext) => Semantics(
+        label: 'Create new wallet dialog',
+        child: AlertDialog(
+          title: Semantics(
+            header: true,
+            child: const Text('Create New Wallet'),
+          ),
+          content: const Text(
+            'A new wallet will be created. You\'ll be shown a recovery phrase that you must backup securely. '
+            'If you lose this phrase, you\'ll lose access to your Bitcoin forever.',
+          ),
+          actions: [
+            Semantics(
+              label: 'Cancel wallet creation',
+              button: true,
+              child: TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+            ),
+            Semantics(
+              label: 'Create new wallet',
+              button: true,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Create'),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
 
@@ -290,39 +352,66 @@ class _CreateOrImportPage extends StatelessWidget {
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Import Wallet'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter your recovery phrase:'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: mnemonicController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'word1 word2 word3 ...',
-                  border: OutlineInputBorder(),
+      builder: (dialogContext) => Semantics(
+        label: 'Import wallet dialog',
+        child: AlertDialog(
+          title: Semantics(
+            header: true,
+            child: const Text('Import Existing Wallet'),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Enter your recovery phrase to restore your wallet. '
+                  'Make sure you\'re in a private location.',
                 ),
+                const SizedBox(height: 16),
+                Semantics(
+                  label: 'Recovery phrase input field',
+                  hint: 'Enter your 12 or 24 word recovery phrase',
+                  textField: true,
+                  child: TextField(
+                    controller: mnemonicController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Recovery Phrase',
+                      hintText: 'word1 word2 word3 ...',
+                      border: OutlineInputBorder(),
+                      helperText:
+                          'Enter all words in order, separated by spaces',
+                    ),
+                    autofocus: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Semantics(
+              label: 'Cancel wallet import',
+              button: true,
+              child: TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
               ),
-            ],
-          ),
+            ),
+            Semantics(
+              label: 'Import wallet with recovery phrase',
+              button: true,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (mnemonicController.text.trim().isNotEmpty) {
+                    Navigator.of(dialogContext).pop(true);
+                  }
+                },
+                child: const Text('Import'),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (mnemonicController.text.trim().isNotEmpty) {
-                Navigator.of(dialogContext).pop(true);
-              }
-            },
-            child: const Text('Import'),
-          ),
-        ],
       ),
     );
 
@@ -350,6 +439,63 @@ class _CreateOrImportPage extends StatelessWidget {
   }
 }
 
+class _WalletOptionCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _WalletOptionCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLarge = Breakpoints.isLarge(context);
+
+    return Semantics(
+      label: '$title. $description',
+      button: true,
+      child: Card(
+        elevation: 2,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: EdgeInsets.all(isLarge ? 28.0 : 24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: isLarge ? 72 : 64, color: iconColor),
+                SizedBox(height: isLarge ? 20 : 16),
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: isLarge ? 12 : 8),
+                Text(
+                  description,
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PageIndicator extends StatelessWidget {
   final bool isActive;
 
@@ -359,15 +505,19 @@ class _PageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive
-            ? theme.colorScheme.primary
-            : theme.colorScheme.outline.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(4),
+    return Semantics(
+      label: isActive ? 'Current page' : 'Page indicator',
+      excludeSemantics: true,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: isActive ? 24 : 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: isActive
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outline.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(4),
+        ),
       ),
     );
   }

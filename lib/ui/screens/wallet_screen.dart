@@ -22,25 +22,37 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BitNest'),
+        title: Semantics(
+          label: 'BitNest wallet app',
+          header: true,
+          child: const Text('BitNest'),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-            tooltip: 'Settings',
+          Semantics(
+            label: 'Open settings',
+            button: true,
+            child: IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+              tooltip: 'Settings',
+            ),
           ),
         ],
       ),
       body: Consumer<WalletProvider>(
         builder: (context, walletProvider, _) {
           if (walletProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Semantics(
+              label: 'Loading wallet data, please wait',
+              liveRegion: true,
+              child: const Center(child: CircularProgressIndicator.adaptive()),
+            );
           }
 
           if (walletProvider.error != null) {
@@ -76,15 +88,23 @@ class _WalletScreenState extends State<WalletScreen> {
       floatingActionButton: Consumer<WalletProvider>(
         builder: (context, walletProvider, _) {
           if (walletProvider.wallets.isEmpty) {
-            return FloatingActionButton.extended(
-              onPressed: () => _showCreateWalletDialog(context, walletProvider),
-              icon: const Icon(Icons.add),
-              label: const Text('Create Wallet'),
+            return Semantics(
+              label: 'Create new Bitcoin wallet',
+              button: true,
+              child: FloatingActionButton.extended(
+                onPressed: () => _showCreateWalletDialog(context, walletProvider),
+                icon: const Icon(Icons.add),
+                label: const Text('Create Wallet'),
+              ),
             );
           }
-          return FloatingActionButton(
-            onPressed: () => _showCreateWalletDialog(context, walletProvider),
-            child: const Icon(Icons.add),
+          return Semantics(
+            label: 'Create new wallet',
+            button: true,
+            child: FloatingActionButton(
+              onPressed: () => _showCreateWalletDialog(context, walletProvider),
+              child: const Icon(Icons.add),
+            ),
           );
         },
       ),
@@ -186,10 +206,14 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => walletProvider.deselectWallet(),
-                    tooltip: 'Back to wallets',
+                  Semantics(
+                    label: 'Back to wallets list',
+                    button: true,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => walletProvider.deselectWallet(),
+                      tooltip: 'Back to wallets',
+                    ),
                   ),
                 ],
               ),

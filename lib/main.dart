@@ -174,9 +174,10 @@ class BitNestApp extends StatelessWidget {
                   return MediaQuery(
                     data: MediaQuery.of(context).copyWith(
                       // Clamp text scaling for accessibility while preventing extreme sizes
+                      // Increased max to 2.0x for better accessibility support (WCAG 2.1)
                       textScaler: MediaQuery.of(context).textScaler.clamp(
                             minScaleFactor: 0.8,
-                            maxScaleFactor: 1.2,
+                            maxScaleFactor: 2.0,
                           ),
                     ),
                     child: child!,
