@@ -334,7 +334,7 @@ class _CreateOrImportPage extends StatelessWidget {
           await _showSeedPhraseBackupDialog(context, wallet.mnemonic!);
         }
         if (context.mounted) {
-          onComplete();
+          onComplete.call();
         }
       } catch (e) {
         if (context.mounted) {
@@ -356,6 +356,8 @@ class _CreateOrImportPage extends StatelessWidget {
     final words = mnemonic.split(' ');
     bool isRevealed = false;
     bool hasBackedUp = false;
+    // Capture the outer context before it gets shadowed by the dialog builder
+    final scaffoldContext = context;
 
     await showDialog<void>(
       context: context,
@@ -521,7 +523,9 @@ class _CreateOrImportPage extends StatelessWidget {
                                     Clipboard.setData(
                                       ClipboardData(text: mnemonic),
                                     );
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    ScaffoldMessenger.of(
+                                      scaffoldContext,
+                                    ).showSnackBar(
                                       const SnackBar(
                                         content: Text(
                                           'Seed phrase copied to clipboard',
