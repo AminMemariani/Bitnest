@@ -476,10 +476,7 @@ class _CreateOrImportPage extends StatelessWidget {
                                       border: Border.all(
                                         color: Theme.of(
                                           context,
-                                        )
-                                            .colorScheme
-                                            .outline
-                                            .withOpacity(0.2),
+                                        ).colorScheme.outline.withOpacity(0.2),
                                       ),
                                     ),
                                     child: Row(

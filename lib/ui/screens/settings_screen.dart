@@ -304,10 +304,7 @@ class _WalletSection extends StatelessWidget {
                       .withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .error
-                        .withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.error.withOpacity(0.5),
                   ),
                 ),
                 child: Column(
