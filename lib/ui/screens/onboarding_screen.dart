@@ -157,7 +157,7 @@ class _WelcomePage extends StatelessWidget {
                 'BitNest keeps your Bitcoin safe with industry-standard security. '
                 'Your keys, your coins—always.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -380,12 +380,12 @@ class _CreateOrImportPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.errorContainer.withOpacity(0.3),
+                      ).colorScheme.errorContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).colorScheme.error.withOpacity(0.5),
+                        ).colorScheme.error.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -451,7 +451,7 @@ class _CreateOrImportPage extends StatelessWidget {
                             border: Border.all(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.outline.withOpacity(0.3),
+                              ).colorScheme.outline.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -474,7 +474,10 @@ class _CreateOrImportPage extends StatelessWidget {
                                       border: Border.all(
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.outline.withOpacity(0.2),
+                                        )
+                                            .colorScheme
+                                            .outline
+                                            .withValues(alpha: 0.2),
                                       ),
                                     ),
                                     child: Row(
@@ -489,7 +492,7 @@ class _CreateOrImportPage extends StatelessWidget {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
-                                                    .withOpacity(0.6),
+                                                    .withValues(alpha: 0.6),
                                               ),
                                         ),
                                         const SizedBox(width: 4),
@@ -763,7 +766,7 @@ class _PageIndicator extends StatelessWidget {
         decoration: BoxDecoration(
           color: isActive
               ? theme.colorScheme.primary
-              : theme.colorScheme.outline.withOpacity(0.3),
+              : theme.colorScheme.outline.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
