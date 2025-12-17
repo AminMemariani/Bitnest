@@ -52,11 +52,14 @@ class Transaction {
       locktime: json['locktime'] as int? ?? 0,
       inputs: inputs,
       outputs: outputs,
-      blockHeight: json['status']?['block_height'] as int? ?? json['block_height'] as int?,
+      blockHeight: json['status']?['block_height'] as int? ??
+          json['block_height'] as int?,
       blockTime: json['status']?['block_time'] != null
-          ? DateTime.fromMillisecondsSinceEpoch((json['status']?['block_time'] as int) * 1000)
+          ? DateTime.fromMillisecondsSinceEpoch(
+              (json['status']?['block_time'] as int) * 1000)
           : (json['block_time'] != null
-              ? DateTime.fromMillisecondsSinceEpoch((json['block_time'] as int) * 1000)
+              ? DateTime.fromMillisecondsSinceEpoch(
+                  (json['block_time'] as int) * 1000)
               : null),
       confirmations: json['status']?['block_height'] != null
           ? (json['status']?['confirmed'] == true ? 1 : 0)
@@ -101,7 +104,7 @@ class TxInput {
     final value = prevoutValue is int
         ? prevoutValue
         : ((prevoutValue as num?)?.toInt() ?? 0);
-    
+
     return TxInput(
       txid: json['txid'] as String,
       vout: json['vout'] as int,
@@ -143,7 +146,9 @@ class TxOutput {
       value: BigInt.from(json['value'] is int
           ? json['value']
           : ((json['value'] as num?)?.toInt() ?? 0)),
-      scriptPubKey: json['scriptpubkey'] as String? ?? json['scriptPubKey'] as String? ?? '',
+      scriptPubKey: json['scriptpubkey'] as String? ??
+          json['scriptPubKey'] as String? ??
+          '',
       address: (json['scriptpubkey_address'] as String?) ??
           (json['address'] as String?) ??
           (json['scriptPubKeyAddress'] as String?),
@@ -159,4 +164,3 @@ class TxOutput {
     };
   }
 }
-

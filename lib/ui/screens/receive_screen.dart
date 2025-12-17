@@ -223,7 +223,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             address,
             style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
           ),
-          subtitle: Text('Derivation: ${_derivationPathForIndex(reverseIndex)}'),
+          subtitle:
+              Text('Derivation: ${_derivationPathForIndex(reverseIndex)}'),
         );
       },
     );
@@ -232,8 +233,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   String get _currentAddress =>
       _addresses.isNotEmpty ? _addresses.last : 'Generating address...';
 
-  String get _currentDerivationPath =>
-      _derivationPathForIndex(_addresses.isNotEmpty ? _addresses.length - 1 : 0);
+  String get _currentDerivationPath => _derivationPathForIndex(
+      _addresses.isNotEmpty ? _addresses.length - 1 : 0);
 
   String _derivationPathForIndex(int index) {
     return '${widget.account.derivationPath}/0/$index';
@@ -273,4 +274,3 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     }
   }
 }
-

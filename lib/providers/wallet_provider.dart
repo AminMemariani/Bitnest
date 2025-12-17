@@ -96,7 +96,8 @@ class WalletProvider extends ChangeNotifier {
     required String label,
     required BitcoinNetwork network,
     int wordCount = 24,
-    key_service.DerivationScheme derivationScheme = key_service.DerivationScheme.nativeSegwit,
+    key_service.DerivationScheme derivationScheme =
+        key_service.DerivationScheme.nativeSegwit,
     String? mnemonic,
   }) async {
     _setLoading(true);
@@ -104,15 +105,16 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       // Generate mnemonic if not provided
-      final walletMnemonic = mnemonic ?? _keyService.generateMnemonic(wordCount: wordCount);
-      
+      final walletMnemonic =
+          mnemonic ?? _keyService.generateMnemonic(wordCount: wordCount);
+
       // Derive seed
       final seed = _keyService.mnemonicToSeed(walletMnemonic);
-      
+
       // Derive master keys
       final masterXpub = _keyService.deriveMasterXpub(seed, network);
       final masterXprv = _keyService.deriveMasterXprv(seed, network);
-      
+
       // Create wallet
       final wallet = Wallet(
         label: label,
@@ -121,19 +123,19 @@ class WalletProvider extends ChangeNotifier {
         xprv: masterXprv,
         mnemonic: walletMnemonic,
       );
-      
+
       _wallets.add(wallet);
-      
+
       // Store mnemonic and seed securely first
       await _keyService.storeMnemonic(wallet.id, walletMnemonic);
       await _keyService.storeSeed(wallet.id, seed);
-      
+
       // Create default account (pass seed directly to avoid retrieval)
       await _createDefaultAccount(wallet, derivationScheme, seed: seed);
-      
+
       _setLoading(false);
       notifyListeners();
-      
+
       return wallet;
     } catch (e, stackTrace) {
       DebugLogger.logException(
@@ -163,7 +165,8 @@ class WalletProvider extends ChangeNotifier {
     required String mnemonic,
     required String label,
     required BitcoinNetwork network,
-    key_service.DerivationScheme derivationScheme = key_service.DerivationScheme.nativeSegwit,
+    key_service.DerivationScheme derivationScheme =
+        key_service.DerivationScheme.nativeSegwit,
   }) async {
     _setLoading(true);
     _clearError();
@@ -172,14 +175,14 @@ class WalletProvider extends ChangeNotifier {
       if (!_keyService.validateMnemonic(mnemonic)) {
         throw ArgumentError('Invalid mnemonic phrase');
       }
-      
+
       // Derive seed
       final seed = _keyService.mnemonicToSeed(mnemonic);
-      
+
       // Derive master keys
       final masterXpub = _keyService.deriveMasterXpub(seed, network);
       final masterXprv = _keyService.deriveMasterXprv(seed, network);
-      
+
       // Create wallet
       final wallet = Wallet(
         label: label,
@@ -188,19 +191,19 @@ class WalletProvider extends ChangeNotifier {
         xprv: masterXprv,
         mnemonic: mnemonic,
       );
-      
+
       _wallets.add(wallet);
-      
+
       // Store mnemonic and seed securely first
       await _keyService.storeMnemonic(wallet.id, mnemonic);
       await _keyService.storeSeed(wallet.id, seed);
-      
+
       // Create default account (pass seed directly to avoid retrieval)
       await _createDefaultAccount(wallet, derivationScheme, seed: seed);
-      
+
       _setLoading(false);
       notifyListeners();
-      
+
       return wallet;
     } catch (e, stackTrace) {
       DebugLogger.logException(
@@ -229,7 +232,8 @@ class WalletProvider extends ChangeNotifier {
     required String xpub,
     required String label,
     required BitcoinNetwork network,
-    key_service.DerivationScheme derivationScheme = key_service.DerivationScheme.nativeSegwit,
+    key_service.DerivationScheme derivationScheme =
+        key_service.DerivationScheme.nativeSegwit,
   }) async {
     _setLoading(true);
     _clearError();
@@ -241,15 +245,15 @@ class WalletProvider extends ChangeNotifier {
         network: network,
         xpub: xpub,
       );
-      
+
       _wallets.add(wallet);
-      
+
       // Create default account from xpub
       await _createAccountFromXpub(wallet, xpub, derivationScheme, 0);
-      
+
       _setLoading(false);
       notifyListeners();
-      
+
       return wallet;
     } catch (e, stackTrace) {
       DebugLogger.logException(
@@ -276,7 +280,7 @@ class WalletProvider extends ChangeNotifier {
     try {
       // Remove from list
       _wallets.removeWhere((w) => w.id == walletId);
-      
+
       // Remove accounts
       _accounts.remove(walletId);
       final accountIds = _currentAccounts.values
@@ -289,15 +293,15 @@ class WalletProvider extends ChangeNotifier {
         _accountBalances.remove(accountId);
         _syncStatus.remove(accountId);
       }
-      
+
       // Clear current wallet if it was removed
       if (_currentWallet?.id == walletId) {
         _currentWallet = null;
       }
-      
+
       // Delete secure storage
       await _keyService.deleteWalletData(walletId);
-      
+
       _setLoading(false);
       notifyListeners();
     } catch (e, stackTrace) {
@@ -320,7 +324,7 @@ class WalletProvider extends ChangeNotifier {
       (w) => w.id == walletId,
       orElse: () => throw ArgumentError('Wallet not found: $walletId'),
     );
-    
+
     _currentWallet = wallet;
     notifyListeners();
   }
@@ -337,7 +341,8 @@ class WalletProvider extends ChangeNotifier {
   /// [derivationScheme] is the derivation scheme (default: nativeSegwit).
   Future<Account> createAccount({
     required String label,
-    key_service.DerivationScheme derivationScheme = key_service.DerivationScheme.nativeSegwit,
+    key_service.DerivationScheme derivationScheme =
+        key_service.DerivationScheme.nativeSegwit,
   }) async {
     if (_currentWallet == null) {
       throw StateError('No wallet selected');
@@ -349,27 +354,28 @@ class WalletProvider extends ChangeNotifier {
     try {
       final wallet = _currentWallet!;
       final accountIndex = _getNextAccountIndex(wallet.id);
-      
+
       Account account;
-      
+
       if (wallet.xprv != null) {
         // Full wallet - derive from seed
         final seed = await _keyService.retrieveSeed(wallet.id);
         if (seed == null) {
           throw StateError('Wallet seed not found');
         }
-        
+
         final accountXpub = _keyService.deriveAccountXpub(
           seed,
           derivationScheme,
           wallet.network,
           accountIndex: accountIndex,
         );
-        
+
         account = Account(
           walletId: wallet.id,
           label: label,
-          derivationPath: _buildDerivationPath(derivationScheme, wallet.network, accountIndex),
+          derivationPath: _buildDerivationPath(
+              derivationScheme, wallet.network, accountIndex),
           accountIndex: accountIndex,
           xpub: accountXpub,
           network: wallet.network,
@@ -384,14 +390,14 @@ class WalletProvider extends ChangeNotifier {
           label: label,
         );
       }
-      
+
       // Add to accounts
       if (_accounts[wallet.id] == null) {
         _accounts[wallet.id] = [];
       }
       _accounts[wallet.id]!.add(account);
       _currentAccounts[account.id] = account;
-      
+
       // Update wallet accountIds
       final walletIndex = _wallets.indexWhere((w) => w.id == wallet.id);
       if (walletIndex != -1) {
@@ -400,10 +406,10 @@ class WalletProvider extends ChangeNotifier {
         );
         _currentWallet = _wallets[walletIndex];
       }
-      
+
       _setLoading(false);
       notifyListeners();
-      
+
       return account;
     } catch (e, stackTrace) {
       DebugLogger.logException(
@@ -436,11 +442,12 @@ class WalletProvider extends ChangeNotifier {
     }
 
     // Determine derivation scheme from account derivation path
-    final scheme = derivationScheme ?? _getDerivationSchemeFromPath(account.derivationPath);
-    
+    final scheme = derivationScheme ??
+        _getDerivationSchemeFromPath(account.derivationPath);
+
     // Get next address index
     final nextIndex = account.addresses.length;
-    
+
     // Derive address
     final address = _keyService.deriveAddress(
       account.xpub,
@@ -449,13 +456,13 @@ class WalletProvider extends ChangeNotifier {
       account.network,
       change: false,
     );
-    
+
     // Add to account addresses
     final updatedAccount = account.copyWith(
       addresses: [...account.addresses, address],
     );
     _currentAccounts[accountId] = updatedAccount;
-    
+
     // Update in accounts list
     final walletAccounts = _accounts[account.walletId];
     if (walletAccounts != null) {
@@ -464,9 +471,9 @@ class WalletProvider extends ChangeNotifier {
         walletAccounts[index] = updatedAccount;
       }
     }
-    
+
     notifyListeners();
-    
+
     return address;
   }
 
@@ -494,7 +501,7 @@ class WalletProvider extends ChangeNotifier {
     try {
       // Fetch UTXOs for all addresses in the account
       final allUtxos = <UTXO>[];
-      
+
       for (final address in account.addresses) {
         try {
           final utxos = await _apiService.getAddressUtxos(address);
@@ -504,24 +511,24 @@ class WalletProvider extends ChangeNotifier {
           debugPrint('Error fetching UTXOs for address $address: $e');
         }
       }
-      
+
       // Store UTXOs
       _accountUtxos[accountId] = allUtxos;
-      
+
       // Compute balance
       final balance = allUtxos.fold<BigInt>(
         BigInt.zero,
         (sum, utxo) => sum + utxo.value,
       );
       _accountBalances[accountId] = balance;
-      
+
       // Update account
       final updatedAccount = account.copyWith(
         balance: balance,
         lastSyncedAt: DateTime.now(),
       );
       _currentAccounts[accountId] = updatedAccount;
-      
+
       // Update in accounts list
       final walletAccounts = _accounts[account.walletId];
       if (walletAccounts != null) {
@@ -530,7 +537,7 @@ class WalletProvider extends ChangeNotifier {
           walletAccounts[index] = updatedAccount;
         }
       }
-      
+
       _syncStatus[accountId] = false;
       notifyListeners();
     } catch (e, stackTrace) {
@@ -553,7 +560,7 @@ class WalletProvider extends ChangeNotifier {
   /// Fetches UTXOs for all accounts in the current wallet.
   Future<void> syncAllAccounts() async {
     if (_currentWallet == null) return;
-    
+
     final accounts = _accounts[_currentWallet!.id] ?? [];
     for (final account in accounts) {
       await fetchAccountUtxos(account.id);
@@ -585,11 +592,11 @@ class WalletProvider extends ChangeNotifier {
     Uint8List? seed,
   }) async {
     Account account;
-    
+
     if (wallet.xprv != null) {
       // Full wallet - derive from seed
       Uint8List? walletSeed = seed;
-      
+
       // If seed not provided, retrieve from storage
       if (walletSeed == null) {
         walletSeed = await _keyService.retrieveSeed(wallet.id);
@@ -597,18 +604,19 @@ class WalletProvider extends ChangeNotifier {
           throw StateError('Wallet seed not found');
         }
       }
-      
+
       final accountXpub = _keyService.deriveAccountXpub(
         walletSeed,
         derivationScheme,
         wallet.network,
         accountIndex: 0,
       );
-      
+
       account = Account(
         walletId: wallet.id,
         label: 'Primary Account',
-        derivationPath: _buildDerivationPath(derivationScheme, wallet.network, 0),
+        derivationPath:
+            _buildDerivationPath(derivationScheme, wallet.network, 0),
         accountIndex: 0,
         xpub: accountXpub,
         network: wallet.network,
@@ -622,10 +630,10 @@ class WalletProvider extends ChangeNotifier {
         0,
       );
     }
-    
+
     _accounts[wallet.id] = [account];
     _currentAccounts[account.id] = account;
-    
+
     // Update wallet
     final walletIndex = _wallets.indexWhere((w) => w.id == wallet.id);
     if (walletIndex != -1) {
@@ -646,9 +654,10 @@ class WalletProvider extends ChangeNotifier {
     String? label,
   }) async {
     // For watch-only, we need to derive the account xpub from master xpub
-    final derivationPath = _buildDerivationPath(derivationScheme, wallet.network, accountIndex);
+    final derivationPath =
+        _buildDerivationPath(derivationScheme, wallet.network, accountIndex);
     final accountXpub = _keyService.deriveXpub(xpub, derivationPath);
-    
+
     return Account(
       walletId: wallet.id,
       label: label ?? 'Account ${accountIndex + 1}',
@@ -662,7 +671,8 @@ class WalletProvider extends ChangeNotifier {
   int _getNextAccountIndex(String walletId) {
     final accounts = _accounts[walletId] ?? [];
     if (accounts.isEmpty) return 0;
-    return accounts.map((a) => a.accountIndex).reduce((a, b) => a > b ? a : b) + 1;
+    return accounts.map((a) => a.accountIndex).reduce((a, b) => a > b ? a : b) +
+        1;
   }
 
   String _buildDerivationPath(
@@ -696,4 +706,3 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 }
-

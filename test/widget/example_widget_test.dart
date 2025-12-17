@@ -45,7 +45,8 @@ void main() {
             create: (_) => NetworkProvider(),
           ),
           ChangeNotifierProvider(
-            create: (_) => SettingsProvider(prefs: prefs, secureStorage: secureStorage),
+            create: (_) =>
+                SettingsProvider(prefs: prefs, secureStorage: secureStorage),
           ),
           ChangeNotifierProvider(
             create: (_) => WalletProvider(
@@ -60,7 +61,8 @@ void main() {
   }
 
   group('WalletScreen Widget Tests', () {
-    testWidgets('displays app bar with title and settings icon', (tester) async {
+    testWidgets('displays app bar with title and settings icon',
+        (tester) async {
       await tester.pumpWidget(buildTestWidget(const WalletScreen()));
       await tester.pumpAndSettle();
 
@@ -68,7 +70,8 @@ void main() {
       expect(find.byIcon(Icons.settings), findsOneWidget);
     });
 
-    testWidgets('navigates to settings when settings icon is tapped', (tester) async {
+    testWidgets('navigates to settings when settings icon is tapped',
+        (tester) async {
       await tester.pumpWidget(buildTestWidget(const WalletScreen()));
       await tester.pumpAndSettle();
 
@@ -137,7 +140,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Get network provider
-      final networkProvider = tester.element(find.byType(WalletScreen)).read<NetworkProvider>();
+      final networkProvider =
+          tester.element(find.byType(WalletScreen)).read<NetworkProvider>();
 
       // Verify initial state
       expect(networkProvider.isTestnet, isFalse);
@@ -155,7 +159,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Get settings provider
-      final settingsProvider = tester.element(find.byType(WalletScreen)).read<SettingsProvider>();
+      final settingsProvider =
+          tester.element(find.byType(WalletScreen)).read<SettingsProvider>();
       await settingsProvider.waitForInitialization();
 
       // Change theme
@@ -223,4 +228,3 @@ void main() {
     });
   });
 }
-

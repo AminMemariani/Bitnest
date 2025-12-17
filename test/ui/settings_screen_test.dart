@@ -43,7 +43,8 @@ void main() {
             create: (_) => NetworkProvider(),
           ),
           ChangeNotifierProvider(
-            create: (_) => SettingsProvider(prefs: prefs, secureStorage: secureStorage),
+            create: (_) =>
+                SettingsProvider(prefs: prefs, secureStorage: secureStorage),
           ),
           ChangeNotifierProvider(
             create: (_) => walletProvider,
@@ -193,7 +194,7 @@ void main() {
       // Without a wallet, the Wipe Wallet option should not be visible
       // or should show an error
       expect(find.text('Wipe Wallet'), findsOneWidget);
-      
+
       await tester.tap(find.text('Wipe Wallet'));
       await tester.pumpAndSettle();
 
@@ -202,4 +203,3 @@ void main() {
     }, skip: true); // Requires wallet creation through provider
   });
 }
-

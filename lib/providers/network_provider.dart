@@ -63,7 +63,7 @@ class NetworkProvider extends ChangeNotifier {
 
     try {
       _currentNetwork = network;
-      
+
       // Persist the choice
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
@@ -96,4 +96,3 @@ class NetworkProvider extends ChangeNotifier {
   /// Checks if currently on testnet.
   bool get isTestnet => _currentNetwork == BitcoinNetwork.testnet;
 }
-

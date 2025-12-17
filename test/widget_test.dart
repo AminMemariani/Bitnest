@@ -25,7 +25,7 @@ void main() {
       find.text('Create your first Bitcoin wallet to get started'),
       findsOneWidget,
     );
-    
+
     // There are multiple "Create Wallet" buttons (welcome screen + FAB),
     // so we check that at least one exists
     expect(find.text('Create Wallet'), findsWidgets);

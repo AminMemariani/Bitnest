@@ -165,7 +165,6 @@ class _TransactionTile extends StatelessWidget {
             ),
     );
   }
-
 }
 
 class _TransactionMeta {
@@ -187,10 +186,12 @@ class _TransactionMeta {
   ) {
     final addressSet = account.addresses.toSet();
     final received = tx.outputs
-        .where((output) => output.address != null && addressSet.contains(output.address))
+        .where((output) =>
+            output.address != null && addressSet.contains(output.address))
         .fold<BigInt>(BigInt.zero, (sum, output) => sum + output.value);
     final spent = tx.inputs
-        .where((input) => input.address != null && addressSet.contains(input.address))
+        .where((input) =>
+            input.address != null && addressSet.contains(input.address))
         .fold<BigInt>(BigInt.zero, (sum, input) => sum + input.value);
 
     final net = received - spent;
@@ -231,7 +232,9 @@ class _TransactionMeta {
 
   IconData directionIcon(TargetPlatform platform) {
     if (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS) {
-      return isIncoming ? CupertinoIcons.arrow_down_left : CupertinoIcons.arrow_up_right;
+      return isIncoming
+          ? CupertinoIcons.arrow_down_left
+          : CupertinoIcons.arrow_up_right;
     }
     return isIncoming ? Icons.call_received : Icons.call_made;
   }
@@ -254,4 +257,3 @@ class _TransactionMeta {
     return '${trimmedInteger.isEmpty ? '0' : trimmedInteger}.$decimalPart';
   }
 }
-

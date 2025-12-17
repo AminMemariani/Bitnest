@@ -40,7 +40,8 @@ void main() {
     );
   }
 
-  testWidgets('ReceiveScreen displays current address and QR code', (tester) async {
+  testWidgets('ReceiveScreen displays current address and QR code',
+      (tester) async {
     final account = buildAccount(addresses: ['bc1qsomething']);
 
     await tester.pumpWidget(
@@ -125,4 +126,3 @@ void main() {
     expect(find.text('bc1qgenerated1'), findsWidgets);
   });
 }
-

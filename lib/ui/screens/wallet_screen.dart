@@ -62,7 +62,8 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   Text(
                     'Error: ${walletProvider.error}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -92,7 +93,8 @@ class _WalletScreenState extends State<WalletScreen> {
               label: 'Create new Bitcoin wallet',
               button: true,
               child: FloatingActionButton.extended(
-                onPressed: () => _showCreateWalletDialog(context, walletProvider),
+                onPressed: () =>
+                    _showCreateWalletDialog(context, walletProvider),
                 icon: const Icon(Icons.add),
                 label: const Text('Create Wallet'),
               ),
@@ -140,7 +142,8 @@ class _WalletScreenState extends State<WalletScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Create Wallet'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -262,8 +265,10 @@ class _WalletScreenState extends State<WalletScreen> {
                   itemCount: accounts.length,
                   itemBuilder: (context, index) {
                     final account = accounts[index];
-                    final balance = walletProvider.getAccountBalance(account.id);
-                    final isSyncing = walletProvider.isAccountSyncing(account.id);
+                    final balance =
+                        walletProvider.getAccountBalance(account.id);
+                    final isSyncing =
+                        walletProvider.isAccountSyncing(account.id);
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -277,11 +282,13 @@ class _WalletScreenState extends State<WalletScreen> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : IconButton(
                                 icon: const Icon(Icons.refresh),
-                                onPressed: () => walletProvider.fetchAccountUtxos(
+                                onPressed: () =>
+                                    walletProvider.fetchAccountUtxos(
                                   account.id,
                                 ),
                                 tooltip: 'Sync',
@@ -292,19 +299,23 @@ class _WalletScreenState extends State<WalletScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfoRow('Derivation Path', account.derivationPath),
-                                _buildInfoRow('Addresses', '${account.addresses.length}'),
+                                _buildInfoRow(
+                                    'Derivation Path', account.derivationPath),
+                                _buildInfoRow(
+                                    'Addresses', '${account.addresses.length}'),
                                 if (account.addresses.isNotEmpty) ...[
                                   const SizedBox(height: 8),
                                   const Divider(),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Addresses:',
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall,
                                   ),
                                   const SizedBox(height: 8),
                                   ...account.addresses.map((address) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 4),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 4),
                                         child: SelectableText(
                                           address,
                                           style: const TextStyle(
@@ -324,10 +335,12 @@ class _WalletScreenState extends State<WalletScreen> {
                                         onPressed: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
-                                              builder: (context) => ReceiveScreen(
+                                              builder: (context) =>
+                                                  ReceiveScreen(
                                                 account: account,
                                                 onGenerateNextAddress: () =>
-                                                    walletProvider.deriveNextReceiveAddress(
+                                                    walletProvider
+                                                        .deriveNextReceiveAddress(
                                                   account.id,
                                                 ),
                                               ),
@@ -341,7 +354,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                         onPressed: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
-                                              builder: (context) => SendScreen(account: account),
+                                              builder: (context) =>
+                                                  SendScreen(account: account),
                                             ),
                                           );
                                         },
@@ -352,7 +366,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                         onPressed: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
-                                              builder: (context) => TransactionsScreen(
+                                              builder: (context) =>
+                                                  TransactionsScreen(
                                                 account: account,
                                               ),
                                             ),
@@ -404,11 +419,12 @@ class _WalletScreenState extends State<WalletScreen> {
     BuildContext context,
     WalletProvider walletProvider,
   ) {
-    final networkProvider = Provider.of<NetworkProvider>(context, listen: false);
+    final networkProvider =
+        Provider.of<NetworkProvider>(context, listen: false);
     final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final keyService = KeyService();
-    
+
     // Generate mnemonic first
     final mnemonic = keyService.generateMnemonic(wordCount: 24);
     final words = mnemonic.split(' ');
@@ -450,10 +466,16 @@ class _WalletScreenState extends State<WalletScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .errorContainer
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -470,8 +492,12 @@ class _WalletScreenState extends State<WalletScreen> {
                             Expanded(
                               child: Text(
                                 'Backup Your Seed Phrase',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.error,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.error,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -503,10 +529,15 @@ class _WalletScreenState extends State<WalletScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outline
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -522,10 +553,14 @@ class _WalletScreenState extends State<WalletScreen> {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.surface,
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .outline
+                                            .withValues(alpha: 0.2),
                                       ),
                                     ),
                                     child: Row(
@@ -533,14 +568,23 @@ class _WalletScreenState extends State<WalletScreen> {
                                       children: [
                                         Text(
                                           '${index + 1}.',
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.6),
                                               ),
                                         ),
                                         const SizedBox(width: 4),
                                         SelectableText(
                                           words[index],
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
                                                 fontFamily: 'monospace',
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -559,10 +603,12 @@ class _WalletScreenState extends State<WalletScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () {
-                                  Clipboard.setData(ClipboardData(text: mnemonic));
+                                  Clipboard.setData(
+                                      ClipboardData(text: mnemonic));
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Seed phrase copied to clipboard'),
+                                      content: Text(
+                                          'Seed phrase copied to clipboard'),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -574,7 +620,8 @@ class _WalletScreenState extends State<WalletScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () => setState(() => isRevealed = false),
+                                onPressed: () =>
+                                    setState(() => isRevealed = false),
                                 icon: const Icon(Icons.visibility_off),
                                 label: const Text('Hide'),
                               ),
@@ -584,7 +631,8 @@ class _WalletScreenState extends State<WalletScreen> {
                         const SizedBox(height: 12),
                         CheckboxListTile(
                           value: hasBackedUp,
-                          onChanged: (value) => setState(() => hasBackedUp = value ?? false),
+                          onChanged: (value) =>
+                              setState(() => hasBackedUp = value ?? false),
                           title: Text(
                             'I have backed up my seed phrase',
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -604,7 +652,9 @@ class _WalletScreenState extends State<WalletScreen> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: (isRevealed && hasBackedUp && formKey.currentState?.validate() == true)
+              onPressed: (isRevealed &&
+                      hasBackedUp &&
+                      formKey.currentState?.validate() == true)
                   ? () async {
                       Navigator.of(context).pop();
                       try {
@@ -721,4 +771,3 @@ class _AccountActionButton extends StatelessWidget {
     );
   }
 }
-

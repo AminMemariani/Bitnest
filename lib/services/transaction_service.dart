@@ -61,8 +61,8 @@ class TransactionService {
   final ApiService _apiService;
 
   TransactionService({KeyService? keyService, ApiService? apiService})
-    : _keyService = keyService ?? KeyService(),
-      _apiService = apiService ?? ApiService();
+      : _keyService = keyService ?? KeyService(),
+        _apiService = apiService ?? ApiService();
 
   /// Builds a transaction from UTXOs and outputs.
   ///

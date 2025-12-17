@@ -53,10 +53,12 @@ class TransactionsProvider extends ChangeNotifier {
 
       for (final address in account.addresses) {
         try {
-          final addressTransactions = await _apiService.getAddressTransactions(address);
+          final addressTransactions =
+              await _apiService.getAddressTransactions(address);
           for (final tx in addressTransactions) {
             final existing = txMap[tx.txid];
-            if (existing == null || _txTimestamp(tx).isAfter(_txTimestamp(existing))) {
+            if (existing == null ||
+                _txTimestamp(tx).isAfter(_txTimestamp(existing))) {
               txMap[tx.txid] = tx;
             }
           }
@@ -106,4 +108,3 @@ class TransactionsProvider extends ChangeNotifier {
     return tx.blockTime ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 }
-

@@ -27,30 +27,33 @@ void main() {
   group('TransactionService', () {
     group('Fee Estimates', () {
       test('gets fee estimate for slow preset', () async {
-        when(mockApiService.getFeeEstimate(targetBlocks: 6))
-            .thenAnswer((_) async => FeeEstimate(satPerVByte: 5, estimatedBlocks: 6));
+        when(mockApiService.getFeeEstimate(targetBlocks: 6)).thenAnswer(
+            (_) async => FeeEstimate(satPerVByte: 5, estimatedBlocks: 6));
 
-        final estimate = await transactionService.getFeeEstimateForPreset(FeePreset.slow);
+        final estimate =
+            await transactionService.getFeeEstimateForPreset(FeePreset.slow);
 
         expect(estimate.satPerVByte, 5);
         expect(estimate.estimatedBlocks, 6);
       });
 
       test('gets fee estimate for normal preset', () async {
-        when(mockApiService.getFeeEstimate(targetBlocks: 3))
-            .thenAnswer((_) async => FeeEstimate(satPerVByte: 10, estimatedBlocks: 3));
+        when(mockApiService.getFeeEstimate(targetBlocks: 3)).thenAnswer(
+            (_) async => FeeEstimate(satPerVByte: 10, estimatedBlocks: 3));
 
-        final estimate = await transactionService.getFeeEstimateForPreset(FeePreset.normal);
+        final estimate =
+            await transactionService.getFeeEstimateForPreset(FeePreset.normal);
 
         expect(estimate.satPerVByte, 10);
         expect(estimate.estimatedBlocks, 3);
       });
 
       test('gets fee estimate for fast preset', () async {
-        when(mockApiService.getFeeEstimate(targetBlocks: 1))
-            .thenAnswer((_) async => FeeEstimate(satPerVByte: 20, estimatedBlocks: 1));
+        when(mockApiService.getFeeEstimate(targetBlocks: 1)).thenAnswer(
+            (_) async => FeeEstimate(satPerVByte: 20, estimatedBlocks: 1));
 
-        final estimate = await transactionService.getFeeEstimateForPreset(FeePreset.fast);
+        final estimate =
+            await transactionService.getFeeEstimateForPreset(FeePreset.fast);
 
         expect(estimate.satPerVByte, 20);
         expect(estimate.estimatedBlocks, 1);
@@ -181,4 +184,3 @@ void main() {
     });
   });
 }
-

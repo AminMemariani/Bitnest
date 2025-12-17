@@ -49,7 +49,8 @@ void main() {
     );
   }
 
-  testWidgets('TransactionList groups and displays transactions', (tester) async {
+  testWidgets('TransactionList groups and displays transactions',
+      (tester) async {
     final transactions = [
       buildTransaction(
         txid: 'tx1',
@@ -109,4 +110,3 @@ void main() {
     expect(tapped, isTrue);
   });
 }
-

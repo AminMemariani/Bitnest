@@ -37,16 +37,21 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // If onboarding screen is shown, complete it
-      if (find.textContaining('Welcome', findRichText: true).evaluate().isNotEmpty) {
+      if (find
+          .textContaining('Welcome', findRichText: true)
+          .evaluate()
+          .isNotEmpty) {
         // Tap "Get Started" button
-        final getStartedButton = find.textContaining('Get Started', findRichText: true);
+        final getStartedButton =
+            find.textContaining('Get Started', findRichText: true);
         if (getStartedButton.evaluate().isNotEmpty) {
           await tester.tap(getStartedButton);
           await tester.pumpAndSettle();
         }
 
         // Tap "Create New Wallet" card
-        final createWalletCard = find.textContaining('Create New Wallet', findRichText: true);
+        final createWalletCard =
+            find.textContaining('Create New Wallet', findRichText: true);
         if (createWalletCard.evaluate().isNotEmpty) {
           await tester.tap(createWalletCard);
           await tester.pumpAndSettle();
@@ -121,7 +126,8 @@ void main() {
           await tester.pumpAndSettle();
 
           // Verify theme changed (check MaterialApp)
-          final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+          final materialApp =
+              tester.widget<MaterialApp>(find.byType(MaterialApp));
           expect(materialApp.themeMode, ThemeMode.dark);
         }
       }
@@ -157,9 +163,11 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify we're on receive screen
-        expect(find.textContaining('Receive', findRichText: true), findsWidgets);
+        expect(
+            find.textContaining('Receive', findRichText: true), findsWidgets);
         // Verify QR code is displayed
-        expect(find.byType(CustomPaint), findsWidgets); // QR code is a CustomPaint
+        expect(
+            find.byType(CustomPaint), findsWidgets); // QR code is a CustomPaint
       }
     });
   });
@@ -237,4 +245,3 @@ void main() {
     });
   });
 }
-

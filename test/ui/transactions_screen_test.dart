@@ -75,7 +75,8 @@ void main() {
     );
   }
 
-  testWidgets('TransactionsScreen loads and displays transactions', (tester) async {
+  testWidgets('TransactionsScreen loads and displays transactions',
+      (tester) async {
     final provider = TransactionsProvider(apiService: mockApi);
     await tester.pumpWidget(_buildTestApp(provider, account));
     await tester.pumpAndSettle();
@@ -97,4 +98,3 @@ void main() {
     expect(find.text('No transactions yet'), findsOneWidget);
   });
 }
-

@@ -21,7 +21,8 @@ void main() {
 
   group('SettingsProvider', () {
     test('initializes with default values', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       expect(provider.themeMode, ThemeMode.system);
@@ -32,7 +33,8 @@ void main() {
 
     test('loads theme mode from preferences', () async {
       await prefs.setString('theme_mode', 'dark');
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       // Wait for async _loadSettings to complete
       await provider.waitForInitialization();
 
@@ -40,7 +42,8 @@ void main() {
     });
 
     test('sets and persists theme mode', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       await provider.setThemeMode(ThemeMode.dark);
@@ -53,7 +56,8 @@ void main() {
 
     test('loads currency from preferences', () async {
       await prefs.setString('currency', 'USD');
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       // Wait for async _loadSettings to complete
       await provider.waitForInitialization();
 
@@ -61,7 +65,8 @@ void main() {
     });
 
     test('sets and persists currency', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       await provider.setCurrency('USD');
@@ -73,7 +78,8 @@ void main() {
     });
 
     test('sets and persists biometrics enabled', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       await provider.setBiometricsEnabled(true);
@@ -85,7 +91,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('sets PIN successfully', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final result = await provider.setPin('1234');
@@ -96,7 +103,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('rejects PIN that is too short', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final result = await provider.setPin('123');
@@ -105,7 +113,8 @@ void main() {
     });
 
     test('rejects PIN that is too long', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final result = await provider.setPin('1234567');
@@ -114,7 +123,8 @@ void main() {
     });
 
     test('verifies PIN correctly', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final setResult = await provider.setPin('1234');
@@ -130,7 +140,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('changes PIN successfully', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final setResult = await provider.setPin('1234');
@@ -146,7 +157,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('fails to change PIN with wrong old PIN', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final setResult = await provider.setPin('1234');
@@ -163,7 +175,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('removes PIN successfully', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final setResult = await provider.setPin('1234');
@@ -180,7 +193,8 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
 
     test('fails to remove PIN with wrong PIN', () async {
-      final provider = SettingsProvider(prefs: prefs, secureStorage: secureStorage);
+      final provider =
+          SettingsProvider(prefs: prefs, secureStorage: secureStorage);
       await provider.waitForInitialization();
 
       final setResult = await provider.setPin('1234');
@@ -194,4 +208,3 @@ void main() {
     }, skip: true); // FlutterSecureStorage not available in unit tests
   });
 }
-

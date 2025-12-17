@@ -42,7 +42,8 @@ class _NetworkSection extends StatelessWidget {
           title: 'Network',
           children: [
             Semantics(
-              label: 'Network selection. Currently using ${networkProvider.networkName}',
+              label:
+                  'Network selection. Currently using ${networkProvider.networkName}',
               value: networkProvider.networkName,
               child: ListTile(
                 title: const Text('Network'),
@@ -85,7 +86,8 @@ class _DisplaySection extends StatelessWidget {
           title: 'Display',
           children: [
             Semantics(
-              label: 'Theme selection. Current theme: ${_getThemeModeLabel(settingsProvider.themeMode)}',
+              label:
+                  'Theme selection. Current theme: ${_getThemeModeLabel(settingsProvider.themeMode)}',
               value: _getThemeModeLabel(settingsProvider.themeMode),
               child: ListTile(
                 title: const Text('Theme'),
@@ -245,7 +247,8 @@ class _WalletSection extends StatelessWidget {
     }
 
     final keyService = KeyService();
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
 
     // Require authentication
     bool authenticated = false;
@@ -295,10 +298,16 @@ class _WalletSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .errorContainer
+                      .withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .error
+                        .withValues(alpha: 0.5),
                   ),
                 ),
                 child: Column(
@@ -315,7 +324,10 @@ class _WalletSection extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'Keep This Secret',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   color: Theme.of(context).colorScheme.error,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -343,10 +355,14 @@ class _WalletSection extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -354,17 +370,22 @@ class _WalletSection extends StatelessWidget {
                       children: [
                         Text(
                           '${index + 1}.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                  ),
                         ),
                         const SizedBox(width: 4),
                         SelectableText(
                           words[index],
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.w500,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                       ],
                     ),
@@ -393,7 +414,8 @@ class _WalletSection extends StatelessWidget {
     );
   }
 
-  Future<bool> _showPinDialog(BuildContext context, SettingsProvider settingsProvider) async {
+  Future<bool> _showPinDialog(
+      BuildContext context, SettingsProvider settingsProvider) async {
     final pinController = TextEditingController();
     bool isValid = false;
 
@@ -452,7 +474,8 @@ class _SecuritySection extends StatelessWidget {
           children: [
             ListTile(
               title: const Text('Enable Biometrics'),
-              subtitle: const Text('Use fingerprint or face ID for authentication'),
+              subtitle:
+                  const Text('Use fingerprint or face ID for authentication'),
               trailing: Switch.adaptive(
                 value: settingsProvider.biometricsEnabled,
                 onChanged: (value) {
@@ -462,7 +485,8 @@ class _SecuritySection extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Change PIN'),
-              subtitle: Text(settingsProvider.hasPin ? 'Update your PIN' : 'Set a PIN'),
+              subtitle: Text(
+                  settingsProvider.hasPin ? 'Update your PIN' : 'Set a PIN'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _showChangePinDialog(context, settingsProvider),
             ),
@@ -478,7 +502,8 @@ class _SecuritySection extends StatelessWidget {
     );
   }
 
-  void _showChangePinDialog(BuildContext context, SettingsProvider settingsProvider) async {
+  void _showChangePinDialog(
+      BuildContext context, SettingsProvider settingsProvider) async {
     final oldPinController = TextEditingController();
     final newPinController = TextEditingController();
     final confirmPinController = TextEditingController();
@@ -569,7 +594,8 @@ class _SecuritySection extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(settingsProvider.hasPin ? 'PIN changed' : 'PIN set'),
+                    content: Text(
+                        settingsProvider.hasPin ? 'PIN changed' : 'PIN set'),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -671,4 +697,3 @@ class _Section extends StatelessWidget {
     );
   }
 }
-

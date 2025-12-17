@@ -74,7 +74,8 @@ void main() {
 
     test('sets fee preset', () async {
       when(mockTransactionService.getFeeEstimateForPreset(FeePreset.normal))
-          .thenAnswer((_) async => FeeEstimate(satPerVByte: 10, estimatedBlocks: 3));
+          .thenAnswer(
+              (_) async => FeeEstimate(satPerVByte: 10, estimatedBlocks: 3));
 
       await sendProvider.setFeePreset(FeePreset.normal);
 
@@ -188,4 +189,3 @@ void main() {
     });
   });
 }
-

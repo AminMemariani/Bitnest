@@ -28,7 +28,8 @@ void main() {
         context: 'Flutter Framework Error',
         additionalInfo: {
           'library': details.library,
-          'informationCollector': details.informationCollector?.call().toString(),
+          'informationCollector':
+              details.informationCollector?.call().toString(),
         },
       );
       FlutterError.presentError(details);
@@ -113,13 +114,13 @@ class BitNestApp extends StatelessWidget {
             ChangeNotifierProvider(
               create: (_) => NetworkProvider(),
             ),
-            
+
             // 2. SettingsProvider - manages app settings (theme, currency, security)
             //    Depends on SharedPreferences
             ChangeNotifierProvider(
               create: (_) => SettingsProvider(prefs: prefs),
             ),
-            
+
             // 3. WalletProvider - manages wallets, accounts, and balances
             //    Depends on KeyService and ApiService
             ChangeNotifierProvider(
@@ -128,7 +129,7 @@ class BitNestApp extends StatelessWidget {
                 apiService: apiService,
               ),
             ),
-            
+
             // 4. SendProvider - manages transaction sending state
             //    Depends on WalletProvider, TransactionService, BroadcastService, KeyService
             //    Uses ChangeNotifierProxyProvider to react to WalletProvider changes
@@ -151,7 +152,7 @@ class BitNestApp extends StatelessWidget {
                 return provider;
               },
             ),
-            
+
             // 5. TransactionsProvider - manages transaction history
             //    Depends on ApiService
             ChangeNotifierProvider(
@@ -168,7 +169,7 @@ class BitNestApp extends StatelessWidget {
                 darkTheme: _buildDarkTheme(),
                 themeMode: settingsProvider.themeMode,
                 debugShowCheckedModeBanner: false,
-                
+
                 // Responsive builder: ensures text scaling and layout adapt to screen size
                 builder: (context, child) {
                   return MediaQuery(
@@ -183,7 +184,7 @@ class BitNestApp extends StatelessWidget {
                     child: child!,
                   );
                 },
-                
+
                 // Adaptive navigation: routes based on app state
                 home: _AppNavigator(
                   walletProvider: walletProvider,
@@ -300,8 +301,7 @@ class _AppNavigatorState extends State<_AppNavigator> {
     await Future.delayed(const Duration(milliseconds: 1500));
 
     // Check if user has completed onboarding
-    final hasCompletedOnboarding =
-        widget.prefs.getBool(_firstRunKey) ?? false;
+    final hasCompletedOnboarding = widget.prefs.getBool(_firstRunKey) ?? false;
 
     // Check if user has any wallets
     final hasWallets = widget.walletProvider.wallets.isNotEmpty;

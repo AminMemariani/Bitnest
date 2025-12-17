@@ -99,7 +99,8 @@ class MockApiService extends ApiService {
   @override
   Future<FeeEstimate> getFeeEstimate({int targetBlocks = 6}) async {
     final estimates = await getFeeEstimates();
-    final fee = estimates[targetBlocks] ?? (estimates.values.isNotEmpty ? estimates.values.first : 10);
+    final fee = estimates[targetBlocks] ??
+        (estimates.values.isNotEmpty ? estimates.values.first : 10);
     return FeeEstimate(
       satPerVByte: fee,
       estimatedBlocks: targetBlocks,
@@ -121,4 +122,3 @@ class MockApiService extends ApiService {
     _feeEstimates.clear();
   }
 }
-

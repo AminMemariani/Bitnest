@@ -87,11 +87,11 @@ void main() {
     expect(find.text('Outputs'), findsOneWidget);
   });
 
-  testWidgets('TransactionDetailScreen loads hex when not provided', (tester) async {
+  testWidgets('TransactionDetailScreen loads hex when not provided',
+      (tester) async {
     await tester.pumpWidget(_buildDetailScreen());
     await tester.pumpAndSettle();
 
     expect(find.byType(SelectableText), findsWidgets);
   });
 }
-

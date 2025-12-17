@@ -262,7 +262,7 @@ class ApiService {
   Future<FeeEstimate> getFeeEstimate({int targetBlocks = 6}) async {
     try {
       final estimates = await getFeeEstimates();
-      
+
       // Find the closest estimate
       int? closestBlocks;
       int? closestFee;
@@ -347,4 +347,3 @@ class ApiException implements Exception {
   @override
   String toString() => 'ApiException: $message (status: $statusCode)';
 }
-

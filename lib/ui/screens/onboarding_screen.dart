@@ -402,7 +402,9 @@ class _CreateOrImportPage extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Write Down These Words',
-                                style: Theme.of(context).textTheme.titleSmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
                                     ?.copyWith(
                                       color: Theme.of(
                                         context,

@@ -37,7 +37,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       ),
       body: Consumer<TransactionsProvider>(
         builder: (context, provider, _) {
-          final transactions = provider.transactionsForAccount(widget.account.id);
+          final transactions =
+              provider.transactionsForAccount(widget.account.id);
           final isLoading = provider.isRefreshing(widget.account.id);
           final error = provider.error;
 
@@ -130,4 +131,3 @@ class _EmptyTransactionsState extends StatelessWidget {
     );
   }
 }
-

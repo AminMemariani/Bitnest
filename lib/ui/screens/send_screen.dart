@@ -82,10 +82,12 @@ class _SendScreenState extends State<SendScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _formatBalance(walletProvider.getAccountBalance(widget.account.id)),
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            _formatBalance(walletProvider
+                                .getAccountBalance(widget.account.id)),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                           ),
                         ],
                       ),
@@ -107,7 +109,8 @@ class _SendScreenState extends State<SendScreen> {
                       }
                       return null;
                     },
-                    onChanged: (value) => sendProvider.setRecipientAddress(value),
+                    onChanged: (value) =>
+                        sendProvider.setRecipientAddress(value),
                   ),
                   const SizedBox(height: 16),
 
@@ -120,7 +123,8 @@ class _SendScreenState extends State<SendScreen> {
                       border: OutlineInputBorder(),
                       prefixText: '₿ ',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter an amount';
@@ -134,7 +138,8 @@ class _SendScreenState extends State<SendScreen> {
                     onChanged: (value) {
                       final amount = double.tryParse(value);
                       if (amount != null && amount > 0) {
-                        final satoshis = BigInt.from((amount * 100000000).round());
+                        final satoshis =
+                            BigInt.from((amount * 100000000).round());
                         sendProvider.setAmount(satoshis);
                       }
                     },
@@ -156,25 +161,33 @@ class _SendScreenState extends State<SendScreen> {
                           if (!_showManualFee) ...[
                             Row(
                               children: FeePreset.values.map((preset) {
-                                final isSelected = sendProvider.selectedFeePreset == preset;
+                                final isSelected =
+                                    sendProvider.selectedFeePreset == preset;
                                 return Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4),
                                     child: OutlinedButton(
-                                      onPressed: () => sendProvider.setFeePreset(preset),
+                                      onPressed: () =>
+                                          sendProvider.setFeePreset(preset),
                                       style: OutlinedButton.styleFrom(
                                         backgroundColor: isSelected
-                                            ? Theme.of(context).colorScheme.primaryContainer
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer
                                             : null,
                                       ),
                                       child: Column(
                                         children: [
                                           Text(preset.label),
-                                          if (sendProvider.currentFeeEstimate != null &&
+                                          if (sendProvider.currentFeeEstimate !=
+                                                  null &&
                                               isSelected)
                                             Text(
                                               '${sendProvider.currentFeeEstimate!.satPerVByte} sat/vB',
-                                              style: Theme.of(context).textTheme.bodySmall,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall,
                                             ),
                                         ],
                                       ),
@@ -185,7 +198,8 @@ class _SendScreenState extends State<SendScreen> {
                             ),
                             const SizedBox(height: 8),
                             TextButton.icon(
-                              onPressed: () => setState(() => _showManualFee = true),
+                              onPressed: () =>
+                                  setState(() => _showManualFee = true),
                               icon: const Icon(Icons.tune),
                               label: const Text('Manual Fee'),
                             ),
@@ -210,7 +224,8 @@ class _SendScreenState extends State<SendScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 TextButton(
-                                  onPressed: () => setState(() => _showManualFee = false),
+                                  onPressed: () =>
+                                      setState(() => _showManualFee = false),
                                   child: const Text('Presets'),
                                 ),
                               ],
@@ -227,7 +242,8 @@ class _SendScreenState extends State<SendScreen> {
                   const SizedBox(height: 16),
 
                   // Transaction summary
-                  if (sendProvider.amount != null && sendProvider.selectedUtxos.isNotEmpty)
+                  if (sendProvider.amount != null &&
+                      sendProvider.selectedUtxos.isNotEmpty)
                     _buildTransactionSummary(context, sendProvider),
                   const SizedBox(height: 16),
 
@@ -250,7 +266,9 @@ class _SendScreenState extends State<SendScreen> {
                             child: Text(
                               sendProvider.error!,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onErrorContainer,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
                               ),
                             ),
                           ),
@@ -309,7 +327,8 @@ class _SendScreenState extends State<SendScreen> {
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () => walletProvider.fetchAccountUtxos(widget.account.id),
+                onPressed: () =>
+                    walletProvider.fetchAccountUtxos(widget.account.id),
                 child: const Text('Sync Account'),
               ),
             ],
@@ -349,7 +368,8 @@ class _SendScreenState extends State<SendScreen> {
             ...utxos.map((utxo) => CheckboxListTile(
                   title: Text(
                     utxo.address.substring(0, 16) + '...',
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    style:
+                        const TextStyle(fontFamily: 'monospace', fontSize: 12),
                   ),
                   subtitle: Text(_formatBalance(utxo.value)),
                   value: sendProvider.selectedUtxos.contains(utxo),
@@ -470,7 +490,8 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  Future<void> _handleSend(BuildContext context, SendProvider sendProvider) async {
+  Future<void> _handleSend(
+      BuildContext context, SendProvider sendProvider) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -489,7 +510,8 @@ class _SendScreenState extends State<SendScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Biometric authentication is required but not available'),
+              content: Text(
+                  'Biometric authentication is required but not available'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -543,4 +565,3 @@ class _SendScreenState extends State<SendScreen> {
     return '${btc.toString()}.${sats.toString().padLeft(8, '0')} BTC';
   }
 }
-

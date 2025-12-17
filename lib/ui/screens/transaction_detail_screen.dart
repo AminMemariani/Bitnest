@@ -21,7 +21,8 @@ class TransactionDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<TransactionDetailScreen> createState() => _TransactionDetailScreenState();
+  State<TransactionDetailScreen> createState() =>
+      _TransactionDetailScreenState();
 }
 
 class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
@@ -92,7 +93,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     children: [
                       Text(
                         meta.directionLabel,
-                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -109,9 +111,11 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       _buildInfoRow('TxID', transaction.txid),
                       TextButton.icon(
                         onPressed: () {
-                          Clipboard.setData(ClipboardData(text: transaction.txid));
+                          Clipboard.setData(
+                              ClipboardData(text: transaction.txid));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('TxID copied to clipboard')),
+                            const SnackBar(
+                                content: Text('TxID copied to clipboard')),
                           );
                         },
                         icon: const Icon(Icons.copy),
@@ -270,7 +274,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
   Future<void> _openInExplorer(BuildContext context) async {
     final network = context.read<NetworkProvider>().currentNetwork;
-    final url = NetworkExplorer.transactionUrl(network, widget.transaction.txid);
+    final url =
+        NetworkExplorer.transactionUrl(network, widget.transaction.txid);
     final uri = Uri.parse(url);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
@@ -300,10 +305,12 @@ class _TransactionMeta {
   ) {
     final addressSet = account.addresses.toSet();
     final inputs = transaction.inputs
-        .where((input) => input.address != null && addressSet.contains(input.address))
+        .where((input) =>
+            input.address != null && addressSet.contains(input.address))
         .fold<BigInt>(BigInt.zero, (sum, input) => sum + input.value);
     final outputs = transaction.outputs
-        .where((output) => output.address != null && addressSet.contains(output.address))
+        .where((output) =>
+            output.address != null && addressSet.contains(output.address))
         .fold<BigInt>(BigInt.zero, (sum, output) => sum + output.value);
 
     final net = outputs - inputs;
@@ -315,7 +322,8 @@ class _TransactionMeta {
     );
   }
 
-  String get directionLabel => isIncoming ? 'Incoming Transaction' : 'Outgoing Transaction';
+  String get directionLabel =>
+      isIncoming ? 'Incoming Transaction' : 'Outgoing Transaction';
 
   String get formattedAmount => _formatSats(netAmount);
 
@@ -367,4 +375,3 @@ class _IoEntry {
 
   String get sign => isIncoming ? '+' : '-';
 }
-

@@ -74,4 +74,3 @@ class Breakpoints {
     return double.infinity;
   }
 }
-

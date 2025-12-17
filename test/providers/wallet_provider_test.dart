@@ -30,15 +30,15 @@ void main() {
 
     group('Wallet Creation', () {
       test('creates a new wallet with mnemonic', () async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
         const masterXpub = 'xpub6C...';
         const masterXprv = 'xprv...';
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
         when(mockKeyService.deriveMasterXpub(seed, BitcoinNetwork.mainnet))
             .thenReturn(masterXpub);
         when(mockKeyService.deriveMasterXprv(seed, BitcoinNetwork.mainnet))
@@ -51,10 +51,8 @@ void main() {
         )).thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
 
         final wallet = await provider.createWallet(
           label: 'Test Wallet',
@@ -66,22 +64,21 @@ void main() {
         expect(wallet.network, BitcoinNetwork.mainnet);
         expect(wallet.xpub, masterXpub);
         expect(provider.wallets.length, 1);
-        
+
         // Select wallet to access accounts
         provider.selectWallet(wallet.id);
         expect(provider.currentAccounts.length, 1);
       });
 
       test('imports wallet from mnemonic', () async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
         const masterXpub = 'xpub6C...';
         const masterXprv = 'xprv...';
 
-        when(mockKeyService.validateMnemonic(mnemonic))
-            .thenReturn(true);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
+        when(mockKeyService.validateMnemonic(mnemonic)).thenReturn(true);
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
         when(mockKeyService.deriveMasterXpub(seed, BitcoinNetwork.mainnet))
             .thenReturn(masterXpub);
         when(mockKeyService.deriveMasterXprv(seed, BitcoinNetwork.mainnet))
@@ -94,10 +91,8 @@ void main() {
         )).thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
 
         final wallet = await provider.importWallet(
           mnemonic: mnemonic,
@@ -113,8 +108,7 @@ void main() {
       test('imports watch-only wallet from xpub', () async {
         const xpub = 'xpub6C...';
 
-        when(mockKeyService.deriveXpub(xpub, any))
-            .thenReturn('account_xpub');
+        when(mockKeyService.deriveXpub(xpub, any)).thenReturn('account_xpub');
 
         final wallet = await provider.importWatchOnlyWallet(
           xpub: xpub,
@@ -148,27 +142,22 @@ void main() {
     group('Wallet Management', () {
       test('removes wallet', () async {
         // Create a wallet first
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
-        when(mockKeyService.deleteWalletData(any))
-            .thenAnswer((_) async => {});
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
+        when(mockKeyService.deleteWalletData(any)).thenAnswer((_) async => {});
 
         final wallet = await provider.createWallet(
           label: 'Test Wallet',
@@ -184,35 +173,29 @@ void main() {
       });
 
       test('selects wallet', () async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub1');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv1');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub1');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv1');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
 
         final wallet1 = await provider.createWallet(
           label: 'Wallet 1',
           network: BitcoinNetwork.mainnet,
         );
 
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub2');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv2');
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub2');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv2');
 
         await provider.createWallet(
           label: 'Wallet 2',
@@ -231,25 +214,21 @@ void main() {
       late Wallet wallet;
 
       setUp(() async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub_0');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
 
         wallet = await provider.createWallet(
           label: 'Test Wallet',
@@ -261,8 +240,7 @@ void main() {
       test('creates new account', () async {
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
         when(mockKeyService.deriveAccountXpub(
           any,
           any,
@@ -296,25 +274,21 @@ void main() {
       late Account account;
 
       setUp(() async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
 
         wallet = await provider.createWallet(
           label: 'Test Wallet',
@@ -362,25 +336,21 @@ void main() {
       late Account account;
 
       setUp(() async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
         when(mockKeyService.deriveAddress(any, any, any, any, change: false))
             .thenReturn('bc1qtest123');
 
@@ -500,31 +470,29 @@ void main() {
 
     group('Total Balance', () {
       test('computes total balance across all accounts', () async {
-        const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
+        const mnemonic =
+            'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
         final seed = Uint8List.fromList(List.generate(64, (i) => i));
 
         when(mockKeyService.generateMnemonic(wordCount: 24))
             .thenReturn(mnemonic);
-        when(mockKeyService.mnemonicToSeed(mnemonic))
-            .thenReturn(seed);
-        when(mockKeyService.deriveMasterXpub(any, any))
-            .thenReturn('xpub');
-        when(mockKeyService.deriveMasterXprv(any, any))
-            .thenReturn('xprv');
+        when(mockKeyService.mnemonicToSeed(mnemonic)).thenReturn(seed);
+        when(mockKeyService.deriveMasterXpub(any, any)).thenReturn('xpub');
+        when(mockKeyService.deriveMasterXprv(any, any)).thenReturn('xprv');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 0))
             .thenReturn('account_xpub_0');
         when(mockKeyService.deriveAccountXpub(any, any, any, accountIndex: 1))
             .thenReturn('account_xpub_1');
         when(mockKeyService.storeMnemonic(any, any))
             .thenAnswer((_) async => {});
-        when(mockKeyService.storeSeed(any, any))
-            .thenAnswer((_) async => {});
-        when(mockKeyService.retrieveSeed(any))
-            .thenAnswer((_) async => seed);
+        when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
+        when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
         // Return different addresses for each account
-        when(mockKeyService.deriveAddress('account_xpub_0', 0, any, any, change: false))
+        when(mockKeyService.deriveAddress('account_xpub_0', 0, any, any,
+                change: false))
             .thenReturn('bc1qaccount1');
-        when(mockKeyService.deriveAddress('account_xpub_1', 0, any, any, change: false))
+        when(mockKeyService.deriveAddress('account_xpub_1', 0, any, any,
+                change: false))
             .thenReturn('bc1qaccount2');
 
         final wallet = await provider.createWallet(
@@ -573,4 +541,3 @@ void main() {
     });
   });
 }
-

@@ -90,9 +90,11 @@ class SendProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentFeeEstimate = await _transactionService.getFeeEstimateForPreset(preset);
+      _currentFeeEstimate =
+          await _transactionService.getFeeEstimateForPreset(preset);
     } catch (e, stackTrace) {
-      DebugLogger.logException(e, stackTrace, context: 'SendProvider.setFeePreset');
+      DebugLogger.logException(e, stackTrace,
+          context: 'SendProvider.setFeePreset');
       _error = 'Failed to get fee estimate: $e';
     } finally {
       _isLoading = false;
@@ -153,7 +155,8 @@ class SendProvider extends ChangeNotifier {
 
     final feeRate = getCurrentFeeRate();
     // Simplified fee calculation
-    final estimatedSize = 10 + (_selectedUtxos.length * 148) + (2 * 34); // inputs + outputs
+    final estimatedSize =
+        10 + (_selectedUtxos.length * 148) + (2 * 34); // inputs + outputs
     return BigInt.from(estimatedSize * feeRate);
   }
 
@@ -222,7 +225,7 @@ class SendProvider extends ChangeNotifier {
 
     try {
       final account = _selectedAccount!;
-      
+
       // Get account xprv
       final wallet = _walletProvider.currentWallet;
       if (wallet == null || wallet.xprv == null) {
@@ -236,7 +239,8 @@ class SendProvider extends ChangeNotifier {
 
       // Derive account xprv
       final scheme = _getDerivationSchemeFromPath(account.derivationPath);
-      final derivationPath = _buildDerivationPath(scheme, account.network, account.accountIndex);
+      final derivationPath =
+          _buildDerivationPath(scheme, account.network, account.accountIndex);
       final masterXprv = _keyService.deriveMasterXprv(seed, account.network);
       final accountXprv = _keyService.deriveXprv(masterXprv, derivationPath);
 
@@ -364,4 +368,3 @@ class SendProvider extends ChangeNotifier {
     }
   }
 }
-

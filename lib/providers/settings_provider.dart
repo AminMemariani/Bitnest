@@ -10,7 +10,8 @@ class SettingsProvider extends ChangeNotifier {
   static const String _prefsKeyCurrency = 'currency';
   static const String _prefsKeyBiometricsEnabled = 'biometrics_enabled';
   static const String _secureStorageKeyPin = 'app_pin';
-  static const String _secureStorageKeyBiometricsEnabled = 'biometrics_enabled_secure';
+  static const String _secureStorageKeyBiometricsEnabled =
+      'biometrics_enabled_secure';
 
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
@@ -210,4 +211,3 @@ class SettingsProvider extends ChangeNotifier {
     return pin.codeUnits.fold<int>(0, (sum, code) => sum + code).toString();
   }
 }
-

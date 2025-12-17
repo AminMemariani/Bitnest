@@ -1,5 +1,5 @@
 /// Network configuration constants for Bitcoin mainnet and testnet.
-/// 
+///
 /// This file contains network-specific constants used throughout the application
 /// for address generation, transaction building, and API endpoint selection.
 library;

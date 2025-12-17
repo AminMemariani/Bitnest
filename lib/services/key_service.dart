@@ -35,7 +35,7 @@ enum DerivationScheme {
 class KeyService {
   final FlutterSecureStorage _storage;
   final LocalAuthentication _localAuth;
-  
+
   // Fallback in-memory storage for development when Keychain fails
   final Map<String, String> _fallbackStorage = {};
 
@@ -158,7 +158,8 @@ class KeyService {
   /// [change] is true for change addresses (internal chain), false for receiving addresses.
   ///
   /// Returns the private key as a hex string.
-  String derivePrivateKey(String xprv, int addressIndex, {bool change = false}) {
+  String derivePrivateKey(String xprv, int addressIndex,
+      {bool change = false}) {
     final changeIndex = change ? 1 : 0;
     final derivationPath = '$changeIndex/$addressIndex';
     final node = bip32.BIP32.fromBase58(xprv);
@@ -448,13 +449,14 @@ class KeyService {
   }
 
   /// Derives a P2SH-wrapped Segwit address from a public key.
-  String _deriveP2SHWrappedSegwitAddress(Uint8List pubKey, BitcoinNetwork network) {
+  String _deriveP2SHWrappedSegwitAddress(
+      Uint8List pubKey, BitcoinNetwork network) {
     final hash160 = _hash160(pubKey);
     // P2WPKH witness program: 0x00 + 20-byte hash160
     final witnessProgram = Uint8List(21);
     witnessProgram[0] = 0x00;
     witnessProgram.setRange(1, 21, hash160);
-    
+
     final scriptHash = _hash160(witnessProgram);
     final version = network == BitcoinNetwork.mainnet ? 0x05 : 0xc4;
     return _base58CheckEncode(scriptHash, version);
@@ -471,7 +473,7 @@ class KeyService {
   Uint8List _hash160(Uint8List data) {
     final sha256 = SHA256Digest();
     final ripemd160 = RIPEMD160Digest();
-    
+
     final sha256Hash = sha256.process(data);
     final ripemd160Hash = ripemd160.process(sha256Hash);
     return Uint8List.fromList(ripemd160Hash);
@@ -486,13 +488,13 @@ class KeyService {
   }
 
   /// Bech32 encodes data for P2WPKH addresses (simplified implementation).
-  /// 
+  ///
   /// Note: This is a simplified bech32 encoder. For production use, consider
   /// using a dedicated bech32 library for full BIP173 compliance.
   String _bech32Encode(String hrp, int witnessVersion, Uint8List data) {
     // Convert data to 5-bit groups
     final values = <int>[witnessVersion];
-    
+
     var bits = 0;
     var value = 0;
     for (var byte in data) {
@@ -506,11 +508,11 @@ class KeyService {
     if (bits > 0) {
       values.add((value << (5 - bits)) & 31);
     }
-    
+
     // Bech32 charset
     const charset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
     final encoded = values.map((v) => charset[v]).join();
-    
+
     // Simple bech32 encoding (full implementation would include checksum)
     // For production, use a proper bech32 library
     return '${hrp}1$encoded';
