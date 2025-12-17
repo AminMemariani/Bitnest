@@ -33,7 +33,7 @@ class SplashScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.shadow.withValues(alpha: 0.3),
+                      color: theme.colorScheme.shadow.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -59,7 +59,7 @@ class SplashScreen extends StatelessWidget {
               Text(
                 'Your Bitcoin Wallet',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+                  color: theme.colorScheme.onPrimary.withOpacity(0.9),
                 ),
               ),
               const SizedBox(height: 48),

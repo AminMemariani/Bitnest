@@ -469,13 +469,13 @@ class _WalletScreenState extends State<WalletScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .errorContainer
-                          .withValues(alpha: 0.3),
+                          .withOpacity(0.3),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Theme.of(context)
                             .colorScheme
                             .error
-                            .withValues(alpha: 0.5),
+                            .withOpacity(0.5),
                       ),
                     ),
                     child: Column(
@@ -537,7 +537,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .outline
-                                  .withValues(alpha: 0.3),
+                                  .withOpacity(0.3),
                             ),
                           ),
                           child: Column(
@@ -560,7 +560,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .outline
-                                            .withValues(alpha: 0.2),
+                                            .withOpacity(0.2),
                                       ),
                                     ),
                                     child: Row(
@@ -575,7 +575,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
-                                                    .withValues(alpha: 0.6),
+                                                    .withOpacity(0.6),
                                               ),
                                         ),
                                         const SizedBox(width: 4),

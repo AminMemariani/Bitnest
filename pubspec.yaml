@@ -68,7 +68,7 @@ dependencies:
   uuid: ^4.5.1
 
   # Internationalization and localization
-  # intl is managed by flutter_localizations, no need to specify explicitly
+  intl: any
 
   # Cupertino Icons
   cupertino_icons: ^1.0.8
