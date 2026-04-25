@@ -123,6 +123,17 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Test-only flip of the public-facing `isLoading` flag plus a
+  /// `notifyListeners` so any UI bound to this provider rebuilds. The
+  /// production loading transitions inside methods like [createWallet]
+  /// only notify on completion, so they don't expose a "loading" frame
+  /// to widget tests; this helper bridges that gap.
+  @visibleForTesting
+  void debugSetLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
   /// Gets balance for a specific account.
   BigInt getAccountBalance(String accountId) {
     return _accountBalances[accountId] ?? BigInt.zero;

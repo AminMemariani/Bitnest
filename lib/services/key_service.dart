@@ -105,42 +105,90 @@ class KeyService {
     );
   }
 
+  /// BIP32 NetworkType for [BitcoinNetwork.mainnet]: emits `xprv` /
+  /// `xpub`-prefixed base58 strings (version bytes 0x0488ADE4 /
+  /// 0x0488B21E).
+  static final bip32.NetworkType _mainnetBip32Network = bip32.NetworkType(
+    wif: 0x80,
+    bip32: bip32.Bip32Type(public: 0x0488B21E, private: 0x0488ADE4),
+  );
+
+  /// BIP32 NetworkType for [BitcoinNetwork.testnet]: emits `tprv` /
+  /// `tpub`-prefixed base58 strings (version bytes 0x04358394 /
+  /// 0x043587CF). Required so extended keys serialised on testnet are
+  /// byte-distinct from mainnet ones — matters for wallet-recovery
+  /// imports and for any caller that infers the network from the
+  /// magic bytes.
+  static final bip32.NetworkType _testnetBip32Network = bip32.NetworkType(
+    wif: 0xEF,
+    bip32: bip32.Bip32Type(public: 0x043587CF, private: 0x04358394),
+  );
+
+  static bip32.NetworkType _bip32NetworkFor(BitcoinNetwork network) =>
+      network == BitcoinNetwork.mainnet
+          ? _mainnetBip32Network
+          : _testnetBip32Network;
+
   /// Derives the master extended private key (xprv) from a seed.
   ///
-  /// Returns the base58-encoded extended private key.
+  /// Returns the base58-encoded extended private key. Magic bytes
+  /// match [network]: `xprv…` for mainnet, `tprv…` for testnet.
   String deriveMasterXprv(Uint8List seed, BitcoinNetwork network) {
-    final masterNode = bip32.BIP32.fromSeed(seed);
+    final masterNode = bip32.BIP32.fromSeed(seed, _bip32NetworkFor(network));
     return masterNode.toBase58();
   }
 
   /// Derives the master extended public key (xpub) from a seed.
   ///
-  /// Returns the base58-encoded extended public key.
+  /// Returns the base58-encoded extended public key. Magic bytes
+  /// match [network]: `xpub…` for mainnet, `tpub…` for testnet.
   String deriveMasterXpub(Uint8List seed, BitcoinNetwork network) {
-    final masterNode = bip32.BIP32.fromSeed(seed);
+    final masterNode = bip32.BIP32.fromSeed(seed, _bip32NetworkFor(network));
     return masterNode.neutered().toBase58();
   }
 
   /// Derives an extended private key (xprv) from a master key using a derivation path.
   ///
-  /// [xprv] is the parent extended private key (base58).
+  /// [xprv] is the parent extended private key (base58). Network is
+  /// inferred from the magic bytes when decoding, so callers don't
+  /// need to pass it explicitly.
   /// [derivationPath] follows BIP32 format (e.g., "m/84'/0'/0'").
-  /// Returns the derived extended private key (base58).
+  /// Returns the derived extended private key (base58), keeping the
+  /// same network magic bytes as the parent.
   String deriveXprv(String xprv, String derivationPath) {
-    final node = bip32.BIP32.fromBase58(xprv);
+    final node = bip32.BIP32.fromBase58(
+      xprv,
+      _detectNetworkFromBase58(xprv),
+    );
     final derived = node.derivePath(derivationPath);
     return derived.toBase58();
   }
 
   /// Derives an extended public key (xpub) from a master key using a derivation path.
   ///
-  /// [xpub] is the parent extended public key (base58).
+  /// [xpub] is the parent extended public key (base58). Network is
+  /// inferred from the magic bytes.
   /// [derivationPath] follows BIP32 format (e.g., "m/84'/0'/0'").
-  /// Returns the derived extended public key (base58).
+  /// Returns the derived extended public key (base58) with matching
+  /// network magic bytes.
   String deriveXpub(String xpub, String derivationPath) {
-    final node = bip32.BIP32.fromBase58(xpub);
+    final node = bip32.BIP32.fromBase58(
+      xpub,
+      _detectNetworkFromBase58(xpub),
+    );
     final derived = node.derivePath(derivationPath);
     return derived.neutered().toBase58();
+  }
+
+  /// Picks the right [bip32.NetworkType] by sniffing the prefix of a
+  /// base58-encoded extended key. Falls back to mainnet for unknown
+  /// prefixes — `bip32.BIP32.fromBase58` will throw a clearer error
+  /// if the version bytes really don't match.
+  static bip32.NetworkType _detectNetworkFromBase58(String s) {
+    if (s.startsWith('tprv') || s.startsWith('tpub')) {
+      return _testnetBip32Network;
+    }
+    return _mainnetBip32Network;
   }
 
   /// Derives an account-level extended public key (xpub) for watch-only wallets.
@@ -162,8 +210,11 @@ class KeyService {
     final derivationPath = _buildDerivationPath(scheme, network, accountIndex);
     final masterXprv = deriveMasterXprv(seed, network);
     final accountXprv = deriveXprv(masterXprv, derivationPath);
-    // Extract xpub from xprv
-    final accountNode = bip32.BIP32.fromBase58(accountXprv);
+    // Extract xpub from xprv (preserve the network's magic bytes).
+    final accountNode = bip32.BIP32.fromBase58(
+      accountXprv,
+      _detectNetworkFromBase58(accountXprv),
+    );
     return accountNode.neutered().toBase58();
   }
 
@@ -178,7 +229,10 @@ class KeyService {
       {bool change = false}) {
     final changeIndex = change ? 1 : 0;
     final derivationPath = '$changeIndex/$addressIndex';
-    final node = bip32.BIP32.fromBase58(xprv);
+    final node = bip32.BIP32.fromBase58(
+      xprv,
+      _detectNetworkFromBase58(xprv),
+    );
     final derived = node.derivePath(derivationPath);
     final privateKey = derived.privateKey;
     if (privateKey == null) {
@@ -197,7 +251,10 @@ class KeyService {
   String derivePublicKey(String xpub, int addressIndex, {bool change = false}) {
     final changeIndex = change ? 1 : 0;
     final derivationPath = '$changeIndex/$addressIndex';
-    final node = bip32.BIP32.fromBase58(xpub);
+    final node = bip32.BIP32.fromBase58(
+      xpub,
+      _detectNetworkFromBase58(xpub),
+    );
     final derived = node.derivePath(derivationPath);
     return HEX.encode(Uint8List.fromList(derived.publicKey));
   }

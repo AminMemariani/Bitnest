@@ -10,6 +10,8 @@ import 'package:bitnest/services/key_service.dart';
 import 'package:bitnest/services/api_service.dart';
 import 'package:bitnest/ui/screens/wallet_screen.dart';
 
+import '../test_environment.dart';
+
 /// Example widget test demonstrating best practices for UI testing.
 ///
 /// This test file shows:
@@ -23,40 +25,49 @@ void main() {
   late FlutterSecureStorage secureStorage;
 
   setUp(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    SharedPreferences.setMockInitialValues({});
+    // TestEnvironment wires the platform-channel mocks we need:
+    // SharedPreferences seeds, flutter_secure_storage method-channel
+    // backing store, local_auth handlers, and clipboard fallbacks.
+    // Without these, SettingsProvider._loadSettings() awaits a
+    // secure-storage read that never resolves under the test harness.
+    await TestEnvironment.install();
     prefs = await SharedPreferences.getInstance();
     secureStorage = const FlutterSecureStorage();
   });
 
   tearDown(() async {
     await prefs.clear();
+    TestEnvironment.uninstall();
   });
 
-  /// Helper function to build a test widget with all required providers
+  /// Helper function to build a test widget with all required providers.
+  ///
+  /// MultiProvider sits ABOVE MaterialApp so providers are visible to
+  /// pushed routes too. If they were nested under `home:` instead,
+  /// Navigator.push would land in a context rooted at the Navigator's
+  /// overlay — outside the provider subtree — and any Consumer in the
+  /// pushed screen would fail with `ProviderNotFoundError`.
   Widget buildTestWidget(Widget child) {
     final keyService = KeyService();
     final apiService = ApiService();
 
-    return MaterialApp(
-      home: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => NetworkProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => NetworkProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              SettingsProvider(prefs: prefs, secureStorage: secureStorage),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WalletProvider(
+            keyService: keyService,
+            apiService: apiService,
           ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                SettingsProvider(prefs: prefs, secureStorage: secureStorage),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => WalletProvider(
-              keyService: keyService,
-              apiService: apiService,
-            ),
-          ),
-        ],
-        child: child,
-      ),
+        ),
+      ],
+      child: MaterialApp(home: child),
     );
   }
 
@@ -123,14 +134,19 @@ void main() {
     });
 
     testWidgets('uses adaptive progress indicators', (tester) async {
+      // WalletScreen renders a CircularProgressIndicator.adaptive() in
+      // its loading branch. The production loading methods only
+      // notifyListeners on completion, so we use the test-only setter
+      // to flip the flag and trigger a rebuild.
       await tester.pumpWidget(buildTestWidget(const WalletScreen()));
       await tester.pumpAndSettle();
 
-      // Look for any loading indicators
-      final progressIndicators = find.byType(CircularProgressIndicator);
-      // Progress indicators may or may not be visible depending on state
-      // This test just verifies they can be found when present
-      expect(progressIndicators, findsWidgets);
+      final wp =
+          tester.element(find.byType(WalletScreen)).read<WalletProvider>();
+      wp.debugSetLoading(true);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
     });
   });
 
@@ -155,21 +171,24 @@ void main() {
     });
 
     testWidgets('reflects settings provider theme changes', (tester) async {
+      // The test widget MaterialApp doesn't bind themeMode to the
+      // SettingsProvider, but the provider's own state should still
+      // flip on setThemeMode. Assert at the provider level — that's
+      // what the production MaterialApp consumes.
       await tester.pumpWidget(buildTestWidget(const WalletScreen()));
       await tester.pumpAndSettle();
 
-      // Get settings provider
       final settingsProvider =
           tester.element(find.byType(WalletScreen)).read<SettingsProvider>();
+      // SettingsProvider._loadSettings now resolves cleanly because
+      // TestEnvironment.install registered a flutter_secure_storage
+      // mock that returns null for unknown keys instead of hanging.
       await settingsProvider.waitForInitialization();
 
-      // Change theme
       await settingsProvider.setThemeMode(ThemeMode.dark);
       await tester.pumpAndSettle();
 
-      // Verify theme changed (check MaterialApp theme mode)
-      final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      expect(materialApp.themeMode, ThemeMode.dark);
+      expect(settingsProvider.themeMode, ThemeMode.dark);
     });
   });
 

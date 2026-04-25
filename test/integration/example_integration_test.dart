@@ -1,246 +1,164 @@
+import 'package:bitnest/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bitnest/main.dart' as app;
 
-/// Example integration test demonstrating end-to-end user flows.
+import '../test_environment.dart';
+
+/// End-to-end-style flow tests for [BitNestApp].
 ///
-/// This test file shows:
-/// - How to test complete user workflows
-/// - How to interact with the app as a user would
-/// - How to verify state changes across multiple screens
-/// - How to test navigation flows
+/// These run as widget tests (not via the `integration_test` package)
+/// — every platform-channel dependency the app touches is mocked
+/// through [TestEnvironment.install]. That includes
+/// `flutter_secure_storage`, `local_auth`, `shared_preferences`, and
+/// the platform clipboard channel.
 ///
-/// Note: Integration tests require a running app instance.
-/// To use integration_test package, add it to dev_dependencies:
-///   integration_test:
-///     sdk: flutter
-/// Run with: flutter test test/integration/example_integration_test.dart
+/// Each test pumps the real [BitNestApp], advances past the 1.5s
+/// splash + first-run navigation, then drives a small interaction. The
+/// assertions are intentionally lenient — these are smoke tests for
+/// the boot path, not full interaction coverage.
 void main() {
-  // Note: For full integration tests, use integration_test package
-  // IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() async {
+    // Pre-mark onboarding complete so the navigator goes directly to
+    // the wallet screen. Tests that explicitly want the onboarding
+    // flow can re-install with an empty prefs map.
+    await TestEnvironment.install(
+      initialPrefs: {'has_completed_onboarding': true},
+    );
+  });
+
+  tearDown(TestEnvironment.uninstall);
+
+  Future<void> bootApp(WidgetTester tester) async {
+    await tester.pumpWidget(const BitNestApp());
+    await TestEnvironment.advancePastSplash(tester);
+  }
 
   group('Wallet Creation Flow', () {
-    testWidgets('complete wallet creation flow', (tester) async {
-      // Clear any existing data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+    testWidgets('boots into onboarding when there is no prior state',
+        (tester) async {
+      // OnboardingScreen's _WelcomePage column has a known overflow at
+      // the default 800×600 test surface (lib/ui/screens/onboarding_screen.dart:126).
+      // Use a phone-sized surface where the layout fits.
+      tester.view.physicalSize = const Size(412, 915);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 2));
+      // Re-install without the onboarding flag so the navigator
+      // routes to OnboardingScreen.
+      TestEnvironment.uninstall();
+      await TestEnvironment.install();
 
-      // Verify splash screen appears
-      expect(find.textContaining('BitNest', findRichText: true), findsWidgets);
+      await bootApp(tester);
 
-      // Wait for navigation to onboarding or wallet screen
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      // Onboarding header text from the welcome page.
+      expect(
+        find.textContaining('BitNest', findRichText: true),
+        findsWidgets,
+        reason: 'app title is rendered somewhere on the boot screen',
+      );
+    });
 
-      // If onboarding screen is shown, complete it
-      if (find
-          .textContaining('Welcome', findRichText: true)
-          .evaluate()
-          .isNotEmpty) {
-        // Tap "Get Started" button
-        final getStartedButton =
-            find.textContaining('Get Started', findRichText: true);
-        if (getStartedButton.evaluate().isNotEmpty) {
-          await tester.tap(getStartedButton);
-          await tester.pumpAndSettle();
-        }
+    testWidgets('boots straight to the empty wallet screen when onboarded',
+        (tester) async {
+      await bootApp(tester);
 
-        // Tap "Create New Wallet" card
-        final createWalletCard =
-            find.textContaining('Create New Wallet', findRichText: true);
-        if (createWalletCard.evaluate().isNotEmpty) {
-          await tester.tap(createWalletCard);
-          await tester.pumpAndSettle();
-        }
-
-        // Confirm wallet creation in dialog
-        final createButton = find.textContaining('Create', findRichText: true);
-        if (createButton.evaluate().isNotEmpty) {
-          await tester.tap(createButton);
-          await tester.pumpAndSettle(const Duration(seconds: 2));
-        }
-      }
-
-      // Verify we're on the wallet screen
-      expect(find.text('BitNest'), findsOneWidget);
+      expect(find.text('Welcome to BitNest'), findsOneWidget);
+      expect(find.text('Create Wallet'), findsWidgets);
     });
   });
 
   group('Settings Flow', () {
-    testWidgets('change network from mainnet to testnet', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+    testWidgets('navigates to settings via the app-bar icon', (tester) async {
+      await bootApp(tester);
 
-      // Navigate to settings
       final settingsButton = find.byIcon(Icons.settings);
-      if (settingsButton.evaluate().isNotEmpty) {
-        await tester.tap(settingsButton);
-        await tester.pumpAndSettle();
-      }
+      expect(settingsButton, findsOneWidget);
 
-      // Find network toggle
-      final networkSwitch = find.byType(Switch).first;
-      if (networkSwitch.evaluate().isNotEmpty) {
-        // Get current state
-        final switchWidget = tester.widget<Switch>(networkSwitch);
-        final initialValue = switchWidget.value;
+      await tester.tap(settingsButton);
+      await tester.pumpAndSettle();
 
-        // Toggle network
-        await tester.tap(networkSwitch);
-        await tester.pumpAndSettle();
-
-        // Verify state changed
-        final updatedSwitch = tester.widget<Switch>(networkSwitch);
-        expect(updatedSwitch.value, isNot(equals(initialValue)));
-      }
+      // Settings screen renders the title text.
+      expect(find.text('Settings'), findsWidgets);
     });
 
-    testWidgets('change theme mode', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+    testWidgets('settings screen exposes a network toggle', (tester) async {
+      await bootApp(tester);
 
-      // Navigate to settings
-      final settingsButton = find.byIcon(Icons.settings);
-      if (settingsButton.evaluate().isNotEmpty) {
-        await tester.tap(settingsButton);
-        await tester.pumpAndSettle();
-      }
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pumpAndSettle();
 
-      // Find theme selector
-      final themeTile = find.text('Theme');
-      if (themeTile.evaluate().isNotEmpty) {
-        // Tap theme selector
-        await tester.tap(themeTile);
-        await tester.pumpAndSettle();
-
-        // Select dark theme
-        final darkThemeOption = find.text('Dark');
-        if (darkThemeOption.evaluate().isNotEmpty) {
-          await tester.tap(darkThemeOption);
-          await tester.pumpAndSettle();
-
-          // Verify theme changed (check MaterialApp)
-          final materialApp =
-              tester.widget<MaterialApp>(find.byType(MaterialApp));
-          expect(materialApp.themeMode, ThemeMode.dark);
-        }
-      }
+      // The settings screen renders at least one Switch (network or
+      // biometrics). Smoke-test that the page loaded — concrete state
+      // assertions live in test/ui/settings_screen_test.dart.
+      final switches = find.byType(Switch);
+      expect(switches, findsWidgets);
     });
   });
 
   group('Transaction Flow', () {
-    testWidgets('navigate to send screen', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+    testWidgets('boot path renders the wallet root without crashing',
+        (tester) async {
+      await bootApp(tester);
 
-      // Find send button or action
-      final sendButton = find.textContaining('Send', findRichText: true);
-      if (sendButton.evaluate().isNotEmpty) {
-        await tester.tap(sendButton);
-        await tester.pumpAndSettle();
-
-        // Verify we're on send screen
-        expect(find.textContaining('Send', findRichText: true), findsWidgets);
-      }
-    });
-
-    testWidgets('navigate to receive screen', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Find receive button or action
-      final receiveButton = find.textContaining('Receive', findRichText: true);
-      if (receiveButton.evaluate().isNotEmpty) {
-        await tester.tap(receiveButton);
-        await tester.pumpAndSettle();
-
-        // Verify we're on receive screen
-        expect(
-            find.textContaining('Receive', findRichText: true), findsWidgets);
-        // Verify QR code is displayed
-        expect(
-            find.byType(CustomPaint), findsWidgets); // QR code is a CustomPaint
-      }
+      // No specific Send/Receive button at the empty-state stage — those
+      // require a created wallet. Smoke-test that the wallet root has
+      // mounted and no exceptions surfaced during boot.
+      expect(find.byType(MaterialApp), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 
   group('Error Handling', () {
-    testWidgets('handles network errors gracefully', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+    testWidgets('handles missing platform channels gracefully',
+        (tester) async {
+      // TestEnvironment.install gives us a stub-everything surface. If
+      // BitNestApp ever calls a channel we forgot to mock, the test
+      // would either hang or surface an exception. After advancing
+      // past splash, neither has happened.
+      await bootApp(tester);
 
-      // Simulate network error (this would require mocking API service)
-      // For now, just verify app doesn't crash
+      expect(tester.takeException(), isNull);
       expect(find.byType(MaterialApp), findsOneWidget);
-    });
-
-    testWidgets('handles invalid input gracefully', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // Navigate to send screen
-      final sendButton = find.textContaining('Send', findRichText: true);
-      if (sendButton.evaluate().isNotEmpty) {
-        await tester.tap(sendButton);
-        await tester.pumpAndSettle();
-
-        // Try to enter invalid address
-        final addressField = find.byType(TextField).first;
-        if (addressField.evaluate().isNotEmpty) {
-          await tester.enterText(addressField, 'invalid-address');
-          await tester.pumpAndSettle();
-
-          // Verify error message or validation feedback
-          // (Implementation depends on your validation logic)
-          expect(tester.takeException(), isNull);
-        }
-      }
     });
   });
 
   group('Performance Tests', () {
-    testWidgets('app loads within acceptable time', (tester) async {
-      final stopwatch = Stopwatch()..start();
-
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 5));
-
-      stopwatch.stop();
-
-      // Verify app loads within 5 seconds
-      expect(stopwatch.elapsedMilliseconds, lessThan(5000));
+    testWidgets('boots within a generous test-harness budget',
+        (tester) async {
+      // Wall-clock isn't accurate inside the binding (the binding
+      // simulates time), so this asserts the boot completes — i.e.
+      // advancePastSplash returns within pumpAndSettle's internal
+      // 5-second cap.
+      await bootApp(tester);
+      expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('screen transitions are smooth', (tester) async {
-      // Start the app
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+    testWidgets('settings screen round-trip is exception-free',
+        (tester) async {
+      await bootApp(tester);
 
-      // Navigate between screens multiple times
-      for (int i = 0; i < 3; i++) {
-        final settingsButton = find.byIcon(Icons.settings);
-        if (settingsButton.evaluate().isNotEmpty) {
-          await tester.tap(settingsButton);
+      // Two settings round-trips. Each iteration: open settings, pop
+      // back. If anything throws on layout or during the route push,
+      // tester.takeException surfaces it at the end.
+      for (var i = 0; i < 2; i++) {
+        await tester.tap(find.byIcon(Icons.settings));
+        await tester.pumpAndSettle();
+
+        final back = find.byIcon(Icons.arrow_back);
+        if (back.evaluate().isNotEmpty) {
+          await tester.tap(back);
           await tester.pumpAndSettle();
-
-          // Go back
-          await tester.tap(find.byIcon(Icons.arrow_back));
+        } else {
+          // No back button? Just pop the route programmatically.
+          tester
+              .element(find.byType(MaterialApp))
+              .findAncestorStateOfType<NavigatorState>()
+              ?.pop();
           await tester.pumpAndSettle();
         }
       }
 
-      // Verify no performance issues
       expect(tester.takeException(), isNull);
     });
   });

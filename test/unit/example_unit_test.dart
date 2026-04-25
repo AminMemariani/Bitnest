@@ -94,8 +94,11 @@ void main() {
       final testnetXpub =
           keyService.deriveMasterXpub(seed, BitcoinNetwork.testnet);
 
-      // Should be different due to network-specific derivation
+      // Different network magic bytes (BIP32 v0): mainnet uses
+      // 0x0488B21E (`xpub…`), testnet uses 0x043587CF (`tpub…`).
       expect(mainnetXpub, isNot(equals(testnetXpub)));
+      expect(mainnetXpub, startsWith('xpub'));
+      expect(testnetXpub, startsWith('tpub'));
     });
   });
 
