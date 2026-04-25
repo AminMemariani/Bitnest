@@ -128,15 +128,17 @@ class SendPipelineService {
     final changeIdx = unsigned.changeIndexUsed ??
         (unsigned.hasChange ? repository.lastAllocatedChangeIndex : null);
 
-    final record = (prior ?? PendingTransaction(
-      txid: txid,
-      signedHex: signedHex,
-      accountId: accountId,
-      changeIndexUsed: changeIdx,
-      spentOutpoints: spent,
-      state: PendingTxState.signed,
-      createdAt: DateTime.now(),
-    )).copyWith(
+    final record = (prior ??
+            PendingTransaction(
+              txid: txid,
+              signedHex: signedHex,
+              accountId: accountId,
+              changeIndexUsed: changeIdx,
+              spentOutpoints: spent,
+              state: PendingTxState.signed,
+              createdAt: DateTime.now(),
+            ))
+        .copyWith(
       signedHex: signedHex,
       state: PendingTxState.signed,
       error: null,

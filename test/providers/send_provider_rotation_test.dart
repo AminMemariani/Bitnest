@@ -151,8 +151,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('SendProvider — rotation invariants on production path', () {
-    test(
-        'a successful broadcast advances currentReceivingIndex by exactly 1',
+    test('a successful broadcast advances currentReceivingIndex by exactly 1',
         () async {
       final f = await _setup();
 

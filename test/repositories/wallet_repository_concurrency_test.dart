@@ -145,8 +145,7 @@ void main() {
       expect(repo.outstandingChangeAllocations, isEmpty);
     });
 
-    test(
-        'markChangeAddressUsed clears the matching outstanding allocation',
+    test('markChangeAddressUsed clears the matching outstanding allocation',
         () async {
       final (:repo, hd: _) = await _makeRepo();
 

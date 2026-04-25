@@ -593,8 +593,7 @@ class _SendScreenState extends State<SendScreen> {
     BuildContext context,
     SendProvider sendProvider,
   ) async {
-    final walletProvider =
-        Provider.of<WalletProvider>(context, listen: false);
+    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
     final repo = await walletProvider.walletRepositoryFor(widget.account.id);
 
     const builder = TransactionBuilder();

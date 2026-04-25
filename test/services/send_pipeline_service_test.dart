@@ -274,8 +274,7 @@ void main() {
 
       // --- simulate app restart: rebuild journal from disk ---
       final journal2 = await TransactionJournal.load(prefs: prefs);
-      expect(journal2.all().length, 1,
-          reason: 'journal must survive restart');
+      expect(journal2.all().length, 1, reason: 'journal must survive restart');
       final pendingRecord = journal2.all().single;
       expect(pendingRecord.state, PendingTxState.signed);
 
@@ -302,8 +301,7 @@ void main() {
 
       expect(outcomes.length, 1);
       expect(outcomes.single.kind, BroadcastOutcomeKind.success);
-      expect(journal2.get(pendingRecord.txid)?.state,
-          PendingTxState.broadcast);
+      expect(journal2.get(pendingRecord.txid)?.state, PendingTxState.broadcast);
       expect(repo2.currentReceivingIndex, receiveBefore + 1);
     });
   });
@@ -421,8 +419,8 @@ void main() {
         isTrue,
       );
       expect(
-        journal
-            .isOutpointPending(accountId: _accountId, outpoint: 'unrelated:0'),
+        journal.isOutpointPending(
+            accountId: _accountId, outpoint: 'unrelated:0'),
         isFalse,
       );
     });

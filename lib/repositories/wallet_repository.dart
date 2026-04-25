@@ -94,8 +94,7 @@ class WalletRepository extends ChangeNotifier {
       currentChangeIndex: store.getInt(_k(accountId, 'currentChange')) ?? 0,
       lastUsedReceivingIndex:
           store.getInt(_k(accountId, 'lastUsedReceiving')) ?? -1,
-      lastUsedChangeIndex:
-          store.getInt(_k(accountId, 'lastUsedChange')) ?? -1,
+      lastUsedChangeIndex: store.getInt(_k(accountId, 'lastUsedChange')) ?? -1,
       lastAppliedTxid: store.getString(_k(accountId, 'lastAppliedTxid')),
     );
   }
@@ -133,8 +132,7 @@ class WalletRepository extends ChangeNotifier {
   /// allocations correctly.
   int? get lastAllocatedChangeIndex {
     if (_outstandingChangeAllocations.isEmpty) return null;
-    return _outstandingChangeAllocations
-        .reduce((a, b) => a > b ? a : b);
+    return _outstandingChangeAllocations.reduce((a, b) => a > b ? a : b);
   }
 
   /// All currently-outstanding change allocations (immutable view).

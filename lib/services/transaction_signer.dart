@@ -232,10 +232,10 @@ class TransactionSigner {
   Uint8List _p2wpkhScriptCode(Uint8List pubKey) {
     final h = _hash160(pubKey);
     return Uint8List.fromList([
-      0x19,                          // script length (25 bytes)
-      0x76, 0xa9, 0x14,              // OP_DUP OP_HASH160 OP_PUSH20
-      ...h,                          // 20-byte pubkey hash
-      0x88, 0xac,                    // OP_EQUALVERIFY OP_CHECKSIG
+      0x19, // script length (25 bytes)
+      0x76, 0xa9, 0x14, // OP_DUP OP_HASH160 OP_PUSH20
+      ...h, // 20-byte pubkey hash
+      0x88, 0xac, // OP_EQUALVERIFY OP_CHECKSIG
     ]);
   }
 
@@ -248,13 +248,13 @@ class TransactionSigner {
   ) {
     final b = BytesBuilder();
     b.add(_uint32LE(tx.version));
-    b.addByte(0x00);                 // marker
-    b.addByte(0x01);                 // flag
+    b.addByte(0x00); // marker
+    b.addByte(0x01); // flag
     b.add(_varInt(tx.inputs.length));
     for (final input in tx.inputs) {
       b.add(_reversed(_hex(input.utxo.txid)));
       b.add(_uint32LE(input.utxo.vout));
-      b.add(_varInt(0));             // empty scriptSig
+      b.add(_varInt(0)); // empty scriptSig
       b.add(_uint32LE(input.sequence));
     }
     b.add(_varInt(tx.outputs.length));
@@ -320,13 +320,21 @@ class TransactionSigner {
     if (version == pkhVersion) {
       // OP_DUP OP_HASH160 <20> <hash> OP_EQUALVERIFY OP_CHECKSIG
       return Uint8List.fromList([
-        0x76, 0xa9, 0x14, ...payload, 0x88, 0xac,
+        0x76,
+        0xa9,
+        0x14,
+        ...payload,
+        0x88,
+        0xac,
       ]);
     }
     if (version == p2shVersion) {
       // OP_HASH160 <20> <hash> OP_EQUAL
       return Uint8List.fromList([
-        0xa9, 0x14, ...payload, 0x87,
+        0xa9,
+        0x14,
+        ...payload,
+        0x87,
       ]);
     }
     throw TransactionSignerException(
@@ -374,7 +382,9 @@ class TransactionSigner {
     var bytes = Uint8List.fromList(HEX.decode(hex));
     // Strip leading zeros except the one required by sign-bit rule.
     var i = 0;
-    while (i + 1 < bytes.length && bytes[i] == 0x00 && (bytes[i + 1] & 0x80) == 0) {
+    while (i + 1 < bytes.length &&
+        bytes[i] == 0x00 &&
+        (bytes[i + 1] & 0x80) == 0) {
       i++;
     }
     bytes = bytes.sublist(i);

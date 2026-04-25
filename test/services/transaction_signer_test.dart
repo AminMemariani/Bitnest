@@ -168,15 +168,9 @@ void main() {
 
       final inputs = [
         _utxoForPath(
-            hd: hd,
-            index: 0,
-            chainType: ChainType.receiving,
-            satoshis: 30000),
+            hd: hd, index: 0, chainType: ChainType.receiving, satoshis: 30000),
         _utxoForPath(
-            hd: hd,
-            index: 5,
-            chainType: ChainType.receiving,
-            satoshis: 40000),
+            hd: hd, index: 5, chainType: ChainType.receiving, satoshis: 40000),
         _utxoForPath(
             hd: hd, index: 1, chainType: ChainType.change, satoshis: 20000),
       ];
@@ -352,8 +346,8 @@ void main() {
       // recipient — decode the bech32 recipient and compare.
       final decoded = Bech32.decodeSegwitAddress(recipient.toLowerCase());
       expect(decoded.witnessVersion, 0);
-      final outputScript = bytes.sublist(
-          outStart + 1 + 8 + 1, outStart + 1 + 8 + 1 + 22);
+      final outputScript =
+          bytes.sublist(outStart + 1 + 8 + 1, outStart + 1 + 8 + 1 + 22);
       // scriptPubKey = OP_0 || 0x14 || 20-byte-hash
       expect(outputScript[0], 0x00);
       expect(outputScript[1], 0x14);

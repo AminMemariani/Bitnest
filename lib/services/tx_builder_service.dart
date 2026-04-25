@@ -123,8 +123,7 @@ class UnsignedTransaction {
     return null;
   }
 
-  TxOutput get recipientOutput =>
-      outputs.firstWhere((o) => !o.isChange);
+  TxOutput get recipientOutput => outputs.firstWhere((o) => !o.isChange);
 }
 
 /// Base class for errors surfaced by [TransactionBuilder].
@@ -337,7 +336,8 @@ class TransactionBuilder {
         sorted.sort((a, b) => a.value.compareTo(b.value));
       case CoinSelectionStrategy.oldestFirst:
         sorted.sort(
-          (a, b) => (a.blockHeight ?? 1 << 31).compareTo(b.blockHeight ?? 1 << 31),
+          (a, b) =>
+              (a.blockHeight ?? 1 << 31).compareTo(b.blockHeight ?? 1 << 31),
         );
     }
     return sorted;
@@ -351,10 +351,8 @@ class TransactionBuilder {
   static void _assertAddressOnNetwork(String address, BitcoinNetwork network) {
     final lower = address.toLowerCase();
     final isMainnet = network == BitcoinNetwork.mainnet;
-    final mainnetBech32 =
-        lower.startsWith('bc1') /* p2wpkh / p2wsh / p2tr */;
-    final testnetBech32 =
-        lower.startsWith('tb1') /* p2wpkh / p2wsh / p2tr */;
+    final mainnetBech32 = lower.startsWith('bc1') /* p2wpkh / p2wsh / p2tr */;
+    final testnetBech32 = lower.startsWith('tb1') /* p2wpkh / p2wsh / p2tr */;
     if (mainnetBech32 || testnetBech32) {
       if (isMainnet && !mainnetBech32) {
         throw InvalidTxInputException(

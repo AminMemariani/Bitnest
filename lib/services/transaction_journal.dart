@@ -41,8 +41,7 @@ class TransactionJournal {
       try {
         final list = jsonDecode(blob) as List<dynamic>;
         for (final item in list) {
-          final tx =
-              PendingTransaction.fromJson(item as Map<String, dynamic>);
+          final tx = PendingTransaction.fromJson(item as Map<String, dynamic>);
           records[tx.txid] = tx;
         }
       } catch (_) {

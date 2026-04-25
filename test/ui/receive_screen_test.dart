@@ -158,8 +158,8 @@ void main() {
       await t.tap(find.byKey(const Key('generate_address_button')));
       await t.pumpAndSettle();
 
-      expect(find.byKey(const Key('excessive_generation_dialog')),
-          findsOneWidget);
+      expect(
+          find.byKey(const Key('excessive_generation_dialog')), findsOneWidget);
 
       await t.tap(find.byKey(const Key('excessive_generation_cancel')));
       await t.pumpAndSettle();

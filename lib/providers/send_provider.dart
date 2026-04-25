@@ -304,8 +304,7 @@ class SendProvider extends ChangeNotifier {
       // Single shared journal across SendProvider and WalletProvider —
       // the provider's pending-UTXO filter and the pipeline's writes
       // must observe the same in-memory state.
-      final journal = _journal ??=
-          await _walletProvider.ensureJournalLoaded();
+      final journal = _journal ??= await _walletProvider.ensureJournalLoaded();
       final signer = TransactionSigner(hd: hd);
       final pipeline = SendPipelineService(
         signer: signer,
@@ -430,5 +429,4 @@ class SendProvider extends ChangeNotifier {
     _txid = null;
     notifyListeners();
   }
-
 }

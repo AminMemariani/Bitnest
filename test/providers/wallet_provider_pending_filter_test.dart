@@ -63,8 +63,12 @@ MockKeyService _stubbedKeyService(Uint8List seed) {
   return k;
 }
 
-Future<({WalletProvider provider, String accountId, TransactionJournal journal})>
-    _setup() async {
+Future<
+    ({
+      WalletProvider provider,
+      String accountId,
+      TransactionJournal journal
+    })> _setup() async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final seed = Uint8List.fromList(List.generate(64, (i) => i));
@@ -122,8 +126,7 @@ void main() {
           reason: 'the unfiltered view stays available for diagnostics');
     });
 
-    test(
-        'a UTXO listed in a broadcast-state journal entry is also filtered',
+    test('a UTXO listed in a broadcast-state journal entry is also filtered',
         () async {
       final s = await _setup();
       s.provider.debugSeedAccountUtxos(s.accountId, [

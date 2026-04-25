@@ -43,8 +43,7 @@ class AddressActivity {
       utxos.where((u) => u.confirmations == 0).toList();
 
   /// Sum of all UTXO values for this address.
-  BigInt get balance =>
-      utxos.fold<BigInt>(BigInt.zero, (s, u) => s + u.value);
+  BigInt get balance => utxos.fold<BigInt>(BigInt.zero, (s, u) => s + u.value);
 }
 
 /// Aggregated result of a full gap-limit scan.
@@ -91,8 +90,7 @@ class ScanResult {
       allUtxos.fold<BigInt>(BigInt.zero, (s, u) => s + u.value);
 
   /// Total addresses the scanner queried (both chains combined).
-  int get addressesScanned =>
-      receivingActivity.length + changeActivity.length;
+  int get addressesScanned => receivingActivity.length + changeActivity.length;
 
   /// Receiving-chain indices marked used (had history).
   List<int> get usedReceivingIndices => [

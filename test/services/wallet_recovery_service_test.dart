@@ -106,8 +106,7 @@ void main() {
       final hd = _makeHd();
       final usedIdx = [0, 2, 5];
       final txs = <String, List<Transaction>>{
-        for (final i in usedIdx)
-          hd.deriveReceivingAddress(i): [_tx('rx-$i')],
+        for (final i in usedIdx) hd.deriveReceivingAddress(i): [_tx('rx-$i')],
       };
       final utxos = <String, List<UTXO>>{
         for (final i in usedIdx)
@@ -146,8 +145,7 @@ void main() {
       final hd = _makeHd();
       final usedChange = [0, 3];
       final txs = <String, List<Transaction>>{
-        for (final i in usedChange)
-          hd.deriveChangeAddress(i): [_tx('ch-$i')],
+        for (final i in usedChange) hd.deriveChangeAddress(i): [_tx('ch-$i')],
       };
       final utxos = <String, List<UTXO>>{
         for (final i in usedChange)
@@ -230,8 +228,7 @@ void main() {
       _stubDefaults(
         api,
         transactions: {
-          for (final i in recvUsed)
-            hd.deriveReceivingAddress(i): [_tx('r$i')],
+          for (final i in recvUsed) hd.deriveReceivingAddress(i): [_tx('r$i')],
           for (final i in chgUsed) hd.deriveChangeAddress(i): [_tx('c$i')],
         },
       );

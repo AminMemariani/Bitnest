@@ -68,8 +68,8 @@ void main() {
       expect(find.byKey(const Key('confirm_row_recipient')), findsOneWidget);
       expect(find.byKey(const Key('confirm_row_amount')), findsOneWidget);
       expect(find.byKey(const Key('confirm_row_fee')), findsOneWidget);
-      expect(find.byKey(const Key('confirm_row_change_amount')),
-          findsOneWidget);
+      expect(
+          find.byKey(const Key('confirm_row_change_amount')), findsOneWidget);
 
       expect(find.text('bc1qrecipienthook'), findsOneWidget);
       expect(find.textContaining('50000 sats'), findsOneWidget);
@@ -84,11 +84,9 @@ void main() {
       ));
       await t.pumpAndSettle();
 
-      expect(find.byKey(const Key('confirm_row_change_amount')),
-          findsNothing);
+      expect(find.byKey(const Key('confirm_row_change_amount')), findsNothing);
       expect(find.byKey(const Key('confirm_advanced_card')), findsNothing,
-          reason:
-              'no change ⇒ no advanced block (change address is the only '
+          reason: 'no change ⇒ no advanced block (change address is the only '
               'advanced field today)');
     });
   });
@@ -110,8 +108,8 @@ void main() {
       await t.tap(find.byKey(const Key('confirm_advanced_tile')));
       await t.pumpAndSettle();
 
-      expect(find.byKey(const Key('confirm_row_change_address')),
-          findsOneWidget);
+      expect(
+          find.byKey(const Key('confirm_row_change_address')), findsOneWidget);
       expect(find.text('bc1qchangeaddr'), findsOneWidget);
     });
   });

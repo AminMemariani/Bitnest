@@ -899,8 +899,7 @@ class WalletProvider extends ChangeNotifier {
           DebugLogger.logException(
             e,
             st,
-            context:
-                'WalletProvider.recoverPendingTransactions (hdServiceFor)',
+            context: 'WalletProvider.recoverPendingTransactions (hdServiceFor)',
             additionalInfo: {'walletId': wallet.id},
           );
           continue;
@@ -1101,7 +1100,8 @@ class WalletProvider extends ChangeNotifier {
 
     final scheme = _getDerivationSchemeFromPath(account.derivationPath);
 
-    if (wallet.xprv != null && scheme == key_service.DerivationScheme.nativeSegwit) {
+    if (wallet.xprv != null &&
+        scheme == key_service.DerivationScheme.nativeSegwit) {
       // Seed-backed BIP84 via the dedicated HD service.
       final hd = await hdServiceFor(wallet.id);
       return change

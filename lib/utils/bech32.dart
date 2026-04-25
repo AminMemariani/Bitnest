@@ -41,11 +41,10 @@ class Bech32 {
       throw Bech32Exception('witness version out of range: $witnessVersion');
     }
     if (program.length < 2 || program.length > 40) {
-      throw Bech32Exception('witness program length invalid: ${program.length}');
+      throw Bech32Exception(
+          'witness program length invalid: ${program.length}');
     }
-    if (witnessVersion == 0 &&
-        program.length != 20 &&
-        program.length != 32) {
+    if (witnessVersion == 0 && program.length != 20 && program.length != 32) {
       throw Bech32Exception(
         'v0 program must be 20 (P2WPKH) or 32 (P2WSH) bytes',
       );
@@ -79,16 +78,13 @@ class Bech32 {
         'decoded program length ${program.length} out of range',
       );
     }
-    if (witnessVersion == 0 &&
-        program.length != 20 &&
-        program.length != 32) {
+    if (witnessVersion == 0 && program.length != 20 && program.length != 32) {
       throw Bech32Exception(
         'v0 program must be 20 or 32 bytes, got ${program.length}',
       );
     }
-    final expected = witnessVersion == 0
-        ? Bech32Variant.bech32
-        : Bech32Variant.bech32m;
+    final expected =
+        witnessVersion == 0 ? Bech32Variant.bech32 : Bech32Variant.bech32m;
     if (variant != expected) {
       throw Bech32Exception(
         'checksum variant mismatch for witness version $witnessVersion',
@@ -147,10 +143,10 @@ class Bech32 {
     return (hrp, data.sublist(0, data.length - 6), variant);
   }
 
-  static List<int> _createChecksum(String hrp, List<int> data, Bech32Variant v) {
+  static List<int> _createChecksum(
+      String hrp, List<int> data, Bech32Variant v) {
     final values = [..._hrpExpand(hrp), ...data, 0, 0, 0, 0, 0, 0];
-    final constVal =
-        v == Bech32Variant.bech32 ? _bech32Const : _bech32mConst;
+    final constVal = v == Bech32Variant.bech32 ? _bech32Const : _bech32mConst;
     final polymod = _polymod(values) ^ constVal;
     return [
       for (var i = 0; i < 6; i++) (polymod >> (5 * (5 - i))) & 31,

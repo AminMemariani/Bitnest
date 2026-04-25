@@ -87,8 +87,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(account.label,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(account.label, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               'Derivation Path: ${account.derivationPath}',
@@ -156,8 +155,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   child: SelectableText(
                     address,
                     key: const Key('current_address_text'),
-                    style: const TextStyle(
-                        fontFamily: 'monospace', fontSize: 14),
+                    style:
+                        const TextStyle(fontFamily: 'monospace', fontSize: 14),
                   ),
                 ),
                 IconButton(
