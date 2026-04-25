@@ -5,6 +5,7 @@ import '../../providers/wallet_provider.dart';
 import '../../providers/network_provider.dart';
 import '../../utils/networks.dart';
 import '../../services/key_service.dart';
+import '../widgets/scan_status_banner.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'transactions_screen.dart';
@@ -75,15 +76,24 @@ class _WalletScreenState extends State<WalletScreen> {
             );
           }
 
+          // Scan-status banner sits above the regular content. It
+          // returns a zero-size widget when no scan is active, so
+          // layouts don't jump.
+          final Widget body;
           if (walletProvider.wallets.isEmpty) {
-            return _buildEmptyState(context, walletProvider);
+            body = _buildEmptyState(context, walletProvider);
+          } else if (walletProvider.currentWallet == null) {
+            body = _buildWalletList(context, walletProvider);
+          } else {
+            body = _buildWalletView(context, walletProvider);
           }
 
-          if (walletProvider.currentWallet == null) {
-            return _buildWalletList(context, walletProvider);
-          }
-
-          return _buildWalletView(context, walletProvider);
+          return Column(
+            children: [
+              _buildScanBanner(context, walletProvider),
+              Expanded(child: body),
+            ],
+          );
         },
       ),
       floatingActionButton: Consumer<WalletProvider>(
@@ -110,6 +120,42 @@ class _WalletScreenState extends State<WalletScreen> {
           );
         },
       ),
+    );
+  }
+
+  /// Decides what the [ScanStatusBanner] should display based on the
+  /// current wallet's account sync flags.
+  ///
+  /// Visibility rules:
+  ///   * If no wallet is selected, the banner is idle (collapsed).
+  ///   * If any account on the current wallet is syncing, show the
+  ///     scanning state.
+  ///   * Errors from a scan currently surface through the existing
+  ///     full-page error UX (handled above this method); the banner's
+  ///     error state is reserved for future per-account error wiring.
+  Widget _buildScanBanner(
+    BuildContext context,
+    WalletProvider walletProvider,
+  ) {
+    final wallet = walletProvider.currentWallet;
+    if (wallet == null) {
+      return const ScanStatusBanner(status: ScanStatus.idle);
+    }
+    final accounts = walletProvider.getAccountsForWallet(wallet.id);
+    final isAnySyncing = accounts.any(
+      (a) => walletProvider.isAccountSyncing(a.id),
+    );
+    if (!isAnySyncing) {
+      return const ScanStatusBanner(status: ScanStatus.idle);
+    }
+
+    final activeAccount = accounts.firstWhere(
+      (a) => walletProvider.isAccountSyncing(a.id),
+      orElse: () => accounts.first,
+    );
+    return ScanStatusBanner(
+      status: ScanStatus.scanning,
+      scanningLabel: 'Scanning ${activeAccount.label}…',
     );
   }
 
@@ -332,17 +378,19 @@ class _WalletScreenState extends State<WalletScreen> {
                                       _AccountActionButton(
                                         label: 'Receive',
                                         icon: Icons.qr_code,
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          // WalletRepository is loaded
+                                          // lazily from SharedPreferences;
+                                          // resolve before navigating.
+                                          final repo = await walletProvider
+                                              .walletRepositoryFor(account.id);
+                                          if (!context.mounted) return;
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (context) =>
                                                   ReceiveScreen(
                                                 account: account,
-                                                onGenerateNextAddress: () =>
-                                                    walletProvider
-                                                        .deriveNextReceiveAddress(
-                                                  account.id,
-                                                ),
+                                                repository: repo,
                                               ),
                                             ),
                                           );

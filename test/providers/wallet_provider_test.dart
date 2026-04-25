@@ -8,18 +8,24 @@ import 'package:bitnest/models/wallet.dart';
 import 'package:bitnest/models/account.dart';
 import 'package:bitnest/models/utxo.dart';
 import 'package:bitnest/utils/networks.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:typed_data';
 
 import 'wallet_provider_test.mocks.dart';
 
 @GenerateMocks([KeyService])
 void main() {
+  // removeWallet() clears persisted address-rotation state via
+  // SharedPreferences, which requires the binding to be initialised.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('WalletProvider', () {
     late MockKeyService mockKeyService;
     late MockApiService mockApiService;
     late WalletProvider provider;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       mockKeyService = MockKeyService();
       mockApiService = MockApiService();
       provider = WalletProvider(
@@ -289,6 +295,10 @@ void main() {
             .thenAnswer((_) async => {});
         when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
         when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
+        // Full native-segwit wallets now derive via HdWalletService, which
+        // bottoms out in KeyService.encodeP2wpkhAddress.
+        when(mockKeyService.encodeP2wpkhAddress(any, any))
+            .thenReturn('bc1qtest123');
 
         wallet = await provider.createWallet(
           label: 'Test Wallet',
@@ -299,14 +309,6 @@ void main() {
       });
 
       test('derives next receive address', () async {
-        when(mockKeyService.deriveAddress(
-          'account_xpub',
-          0,
-          any,
-          any,
-          change: false,
-        )).thenReturn('bc1qtest123');
-
         final address = await provider.deriveNextReceiveAddress(account.id);
 
         expect(address, 'bc1qtest123');
@@ -315,14 +317,6 @@ void main() {
       });
 
       test('lists addresses for account', () async {
-        when(mockKeyService.deriveAddress(
-          'account_xpub',
-          any,
-          any,
-          any,
-          change: false,
-        )).thenReturn('bc1qtest');
-
         await provider.deriveNextReceiveAddress(account.id);
         await provider.deriveNextReceiveAddress(account.id);
 
@@ -352,6 +346,8 @@ void main() {
         when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
         when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
         when(mockKeyService.deriveAddress(any, any, any, any, change: false))
+            .thenReturn('bc1qtest123');
+        when(mockKeyService.encodeP2wpkhAddress(any, any))
             .thenReturn('bc1qtest123');
 
         wallet = await provider.createWallet(
@@ -487,13 +483,16 @@ void main() {
             .thenAnswer((_) async => {});
         when(mockKeyService.storeSeed(any, any)).thenAnswer((_) async => {});
         when(mockKeyService.retrieveSeed(any)).thenAnswer((_) async => seed);
-        // Return different addresses for each account
-        when(mockKeyService.deriveAddress('account_xpub_0', 0, any, any,
-                change: false))
-            .thenReturn('bc1qaccount1');
-        when(mockKeyService.deriveAddress('account_xpub_1', 0, any, any,
-                change: false))
-            .thenReturn('bc1qaccount2');
+        // HdWalletService derives distinct pubkeys per account index from the
+        // same seed; encodeP2wpkhAddress is the final leg. Return a distinct
+        // address per call so the two accounts track separate UTXO sets.
+        final encodedAddresses = ['bc1qaccount1', 'bc1qaccount2'];
+        var encodeCall = 0;
+        when(mockKeyService.encodeP2wpkhAddress(any, any)).thenAnswer((_) {
+          final addr = encodedAddresses[encodeCall % encodedAddresses.length];
+          encodeCall++;
+          return addr;
+        });
 
         final wallet = await provider.createWallet(
           label: 'Test Wallet',

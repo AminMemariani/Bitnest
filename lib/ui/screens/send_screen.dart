@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/send_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../models/account.dart';
-import '../../services/transaction_service.dart';
 import '../../services/key_service.dart';
+import '../../services/transaction_service.dart';
+import '../../services/tx_builder_service.dart';
+import '../widgets/transaction_confirmation_view.dart';
 
 class SendScreen extends StatefulWidget {
   final Account account;
@@ -496,7 +498,34 @@ class _SendScreenState extends State<SendScreen> {
       return;
     }
 
-    // Require biometric authentication
+    // Step 1 — build a preview UnsignedTransaction so the user can see
+    // exactly what they're authorising. The preview uses the
+    // repository's non-mutating peek for the change address; the real
+    // allocation happens inside sendTransaction after the user
+    // confirms.
+    final UnsignedTransaction preview;
+    try {
+      preview = await _buildPreviewTransaction(context, sendProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cannot prepare transaction: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Step 2 — show the confirmation sheet. If the user cancels, we
+    // return without burning any state.
+    if (!mounted) return;
+    final confirmed = await _showConfirmationSheet(context, preview);
+    if (confirmed != true) return;
+
+    // Step 3 — biometric gate, then the real send.
+    if (!mounted) return;
     final keyService = KeyService();
     bool authenticated = false;
     try {
@@ -506,7 +535,6 @@ class _SendScreenState extends State<SendScreen> {
           reason: 'Authenticate to send Bitcoin transaction',
         );
       } else {
-        // If biometric not available, show error
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -554,6 +582,65 @@ class _SendScreenState extends State<SendScreen> {
         );
       }
     }
+  }
+
+  /// Builds a preview [UnsignedTransaction] from the form values and the
+  /// account's repository. The preview uses
+  /// [WalletRepository.peekFreshChangeAddress] — i.e. it does NOT
+  /// allocate a change index. Cancelling at the confirmation step
+  /// therefore costs the user nothing.
+  Future<UnsignedTransaction> _buildPreviewTransaction(
+    BuildContext context,
+    SendProvider sendProvider,
+  ) async {
+    final walletProvider =
+        Provider.of<WalletProvider>(context, listen: false);
+    final repo = await walletProvider.walletRepositoryFor(widget.account.id);
+
+    const builder = TransactionBuilder();
+    return builder.build(
+      recipientAddress: sendProvider.recipientAddress!,
+      amountSats: sendProvider.amount!,
+      feeRateSatPerVbyte: sendProvider.getCurrentFeeRate(),
+      availableUtxos: sendProvider.selectedUtxos,
+      network: widget.account.network,
+      // Non-mutating allocator: returns the address that would be used
+      // *if* the send proceeds, without claiming the index.
+      getFreshChangeAddress: () async => ChangeAllocation(
+        index: repo.currentChangeIndex,
+        address: repo.peekFreshChangeAddress(),
+      ),
+    );
+  }
+
+  Future<bool?> _showConfirmationSheet(
+    BuildContext context,
+    UnsignedTransaction preview,
+  ) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              16 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+            ),
+            child: SingleChildScrollView(
+              child: TransactionConfirmationView(
+                key: const Key('send_confirmation_view'),
+                unsigned: preview,
+                onCancel: () => Navigator.of(sheetCtx).pop(false),
+                onConfirm: () => Navigator.of(sheetCtx).pop(true),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String _formatBalance(BigInt balance) {

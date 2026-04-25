@@ -3,22 +3,25 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
-import 'dart:typed_data' as _i12;
-import 'dart:ui' as _i15;
+import 'dart:async' as _i9;
+import 'dart:typed_data' as _i15;
+import 'dart:ui' as _i18;
 
 import 'package:bitnest/models/account.dart' as _i5;
 import 'package:bitnest/models/fee_estimate.dart' as _i2;
-import 'package:bitnest/models/utxo.dart' as _i8;
+import 'package:bitnest/models/utxo.dart' as _i11;
 import 'package:bitnest/models/wallet.dart' as _i4;
-import 'package:bitnest/providers/wallet_provider.dart' as _i14;
-import 'package:bitnest/services/broadcast_service.dart' as _i11;
-import 'package:bitnest/services/key_service.dart' as _i9;
+import 'package:bitnest/providers/wallet_provider.dart' as _i17;
+import 'package:bitnest/repositories/wallet_repository.dart' as _i7;
+import 'package:bitnest/services/broadcast_service.dart' as _i14;
+import 'package:bitnest/services/hd_wallet_service.dart' as _i6;
+import 'package:bitnest/services/key_service.dart' as _i12;
 import 'package:bitnest/services/transaction_service.dart' as _i3;
-import 'package:bitnest/utils/networks.dart' as _i10;
-import 'package:local_auth/local_auth.dart' as _i13;
+import 'package:bitnest/services/utxo_scanner_service.dart' as _i8;
+import 'package:bitnest/utils/networks.dart' as _i13;
+import 'package:local_auth/local_auth.dart' as _i16;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:mockito/src/dummies.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -36,23 +39,75 @@ import 'package:mockito/src/dummies.dart' as _i7;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeFeeEstimate_0 extends _i1.SmartFake implements _i2.FeeEstimate {
-  _FakeFeeEstimate_0(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeFeeEstimate_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeTxInputInfo_1 extends _i1.SmartFake implements _i3.TxInputInfo {
-  _FakeTxInputInfo_1(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeTxInputInfo_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeWallet_2 extends _i1.SmartFake implements _i4.Wallet {
-  _FakeWallet_2(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeWallet_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 class _FakeAccount_3 extends _i1.SmartFake implements _i5.Account {
-  _FakeAccount_3(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeAccount_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeHdWalletService_4 extends _i1.SmartFake
+    implements _i6.HdWalletService {
+  _FakeHdWalletService_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWalletRepository_5 extends _i1.SmartFake
+    implements _i7.WalletRepository {
+  _FakeWalletRepository_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeScanResult_6 extends _i1.SmartFake implements _i8.ScanResult {
+  _FakeScanResult_6(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [TransactionService].
@@ -65,96 +120,120 @@ class MockTransactionService extends _i1.Mock
   }
 
   @override
-  _i6.Future<String> buildTransaction({
+  _i9.Future<String> buildTransaction({
     required List<_i3.TxInputInfo>? inputs,
     required List<_i3.TxOutputInfo>? outputs,
     required int? feeRate,
     String? changeAddress,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#buildTransaction, [], {
-          #inputs: inputs,
-          #outputs: outputs,
-          #feeRate: feeRate,
-          #changeAddress: changeAddress,
-        }),
-        returnValue: _i6.Future<String>.value(
-          _i7.dummyValue<String>(
-            this,
-            Invocation.method(#buildTransaction, [], {
+        Invocation.method(
+          #buildTransaction,
+          [],
+          {
+            #inputs: inputs,
+            #outputs: outputs,
+            #feeRate: feeRate,
+            #changeAddress: changeAddress,
+          },
+        ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #buildTransaction,
+            [],
+            {
               #inputs: inputs,
               #outputs: outputs,
               #feeRate: feeRate,
               #changeAddress: changeAddress,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<String>);
+        )),
+      ) as _i9.Future<String>);
 
   @override
-  _i6.Future<_i2.FeeEstimate> getFeeEstimateForPreset(_i3.FeePreset? preset) =>
+  _i9.Future<_i2.FeeEstimate> getFeeEstimateForPreset(_i3.FeePreset? preset) =>
       (super.noSuchMethod(
-        Invocation.method(#getFeeEstimateForPreset, [preset]),
-        returnValue: _i6.Future<_i2.FeeEstimate>.value(
-          _FakeFeeEstimate_0(
-            this,
-            Invocation.method(#getFeeEstimateForPreset, [preset]),
-          ),
+        Invocation.method(
+          #getFeeEstimateForPreset,
+          [preset],
         ),
-      ) as _i6.Future<_i2.FeeEstimate>);
+        returnValue: _i9.Future<_i2.FeeEstimate>.value(_FakeFeeEstimate_0(
+          this,
+          Invocation.method(
+            #getFeeEstimateForPreset,
+            [preset],
+          ),
+        )),
+      ) as _i9.Future<_i2.FeeEstimate>);
 
   @override
-  _i6.Future<_i3.TxInputInfo> createInputInfo({
-    required _i8.UTXO? utxo,
+  _i9.Future<_i3.TxInputInfo> createInputInfo({
+    required _i11.UTXO? utxo,
     required String? accountXprv,
     required int? addressIndex,
     required bool? isChange,
-    required _i9.DerivationScheme? scheme,
+    required _i12.DerivationScheme? scheme,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#createInputInfo, [], {
-          #utxo: utxo,
-          #accountXprv: accountXprv,
-          #addressIndex: addressIndex,
-          #isChange: isChange,
-          #scheme: scheme,
-        }),
-        returnValue: _i6.Future<_i3.TxInputInfo>.value(
-          _FakeTxInputInfo_1(
-            this,
-            Invocation.method(#createInputInfo, [], {
+        Invocation.method(
+          #createInputInfo,
+          [],
+          {
+            #utxo: utxo,
+            #accountXprv: accountXprv,
+            #addressIndex: addressIndex,
+            #isChange: isChange,
+            #scheme: scheme,
+          },
+        ),
+        returnValue: _i9.Future<_i3.TxInputInfo>.value(_FakeTxInputInfo_1(
+          this,
+          Invocation.method(
+            #createInputInfo,
+            [],
+            {
               #utxo: utxo,
               #accountXprv: accountXprv,
               #addressIndex: addressIndex,
               #isChange: isChange,
               #scheme: scheme,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<_i3.TxInputInfo>);
+        )),
+      ) as _i9.Future<_i3.TxInputInfo>);
 
   @override
   String deriveChangeAddress({
     required String? accountXpub,
     required int? currentChangeIndex,
-    required _i9.DerivationScheme? scheme,
-    required _i10.BitcoinNetwork? network,
+    required _i12.DerivationScheme? scheme,
+    required _i13.BitcoinNetwork? network,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#deriveChangeAddress, [], {
-          #accountXpub: accountXpub,
-          #currentChangeIndex: currentChangeIndex,
-          #scheme: scheme,
-          #network: network,
-        }),
-        returnValue: _i7.dummyValue<String>(
-          this,
-          Invocation.method(#deriveChangeAddress, [], {
+        Invocation.method(
+          #deriveChangeAddress,
+          [],
+          {
             #accountXpub: accountXpub,
             #currentChangeIndex: currentChangeIndex,
             #scheme: scheme,
             #network: network,
-          }),
+          },
+        ),
+        returnValue: _i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #deriveChangeAddress,
+            [],
+            {
+              #accountXpub: accountXpub,
+              #currentChangeIndex: currentChangeIndex,
+              #scheme: scheme,
+              #network: network,
+            },
+          ),
         ),
       ) as String);
 }
@@ -162,25 +241,32 @@ class MockTransactionService extends _i1.Mock
 /// A class which mocks [BroadcastService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBroadcastService extends _i1.Mock implements _i11.BroadcastService {
+class MockBroadcastService extends _i1.Mock implements _i14.BroadcastService {
   MockBroadcastService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i6.Future<String> broadcastTransaction(String? txHex) => (super.noSuchMethod(
-        Invocation.method(#broadcastTransaction, [txHex]),
-        returnValue: _i6.Future<String>.value(
-          _i7.dummyValue<String>(
-            this,
-            Invocation.method(#broadcastTransaction, [txHex]),
-          ),
+  _i9.Future<String> broadcastTransaction(String? txHex) => (super.noSuchMethod(
+        Invocation.method(
+          #broadcastTransaction,
+          [txHex],
         ),
-      ) as _i6.Future<String>);
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #broadcastTransaction,
+            [txHex],
+          ),
+        )),
+      ) as _i9.Future<String>);
 
   @override
-  void setNetwork(_i10.BitcoinNetwork? network) => super.noSuchMethod(
-        Invocation.method(#setNetwork, [network]),
+  void setNetwork(_i13.BitcoinNetwork? network) => super.noSuchMethod(
+        Invocation.method(
+          #setNetwork,
+          [network],
+        ),
         returnValueForMissingStub: null,
       );
 }
@@ -188,95 +274,177 @@ class MockBroadcastService extends _i1.Mock implements _i11.BroadcastService {
 /// A class which mocks [KeyService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockKeyService extends _i1.Mock implements _i9.KeyService {
+class MockKeyService extends _i1.Mock implements _i12.KeyService {
   MockKeyService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
   String generateMnemonic({int? wordCount = 24}) => (super.noSuchMethod(
-        Invocation.method(#generateMnemonic, [], {#wordCount: wordCount}),
-        returnValue: _i7.dummyValue<String>(
+        Invocation.method(
+          #generateMnemonic,
+          [],
+          {#wordCount: wordCount},
+        ),
+        returnValue: _i10.dummyValue<String>(
           this,
-          Invocation.method(#generateMnemonic, [], {#wordCount: wordCount}),
+          Invocation.method(
+            #generateMnemonic,
+            [],
+            {#wordCount: wordCount},
+          ),
         ),
       ) as String);
 
   @override
   bool validateMnemonic(String? mnemonic) => (super.noSuchMethod(
-        Invocation.method(#validateMnemonic, [mnemonic]),
+        Invocation.method(
+          #validateMnemonic,
+          [mnemonic],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
-  _i12.Uint8List mnemonicToSeed(String? mnemonic, {String? passphrase}) =>
+  _i15.Uint8List mnemonicToSeed(
+    String? mnemonic, {
+    String? passphrase,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #mnemonicToSeed,
           [mnemonic],
           {#passphrase: passphrase},
         ),
-        returnValue: _i12.Uint8List(0),
-      ) as _i12.Uint8List);
+        returnValue: _i15.Uint8List(0),
+      ) as _i15.Uint8List);
 
   @override
-  String deriveMasterXprv(_i12.Uint8List? seed, _i10.BitcoinNetwork? network) =>
+  String deriveMasterXprv(
+    _i15.Uint8List? seed,
+    _i13.BitcoinNetwork? network,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(#deriveMasterXprv, [seed, network]),
-        returnValue: _i7.dummyValue<String>(
+        Invocation.method(
+          #deriveMasterXprv,
+          [
+            seed,
+            network,
+          ],
+        ),
+        returnValue: _i10.dummyValue<String>(
           this,
-          Invocation.method(#deriveMasterXprv, [seed, network]),
+          Invocation.method(
+            #deriveMasterXprv,
+            [
+              seed,
+              network,
+            ],
+          ),
         ),
       ) as String);
 
   @override
-  String deriveMasterXpub(_i12.Uint8List? seed, _i10.BitcoinNetwork? network) =>
+  String deriveMasterXpub(
+    _i15.Uint8List? seed,
+    _i13.BitcoinNetwork? network,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(#deriveMasterXpub, [seed, network]),
-        returnValue: _i7.dummyValue<String>(
+        Invocation.method(
+          #deriveMasterXpub,
+          [
+            seed,
+            network,
+          ],
+        ),
+        returnValue: _i10.dummyValue<String>(
           this,
-          Invocation.method(#deriveMasterXpub, [seed, network]),
+          Invocation.method(
+            #deriveMasterXpub,
+            [
+              seed,
+              network,
+            ],
+          ),
         ),
       ) as String);
 
   @override
-  String deriveXprv(String? xprv, String? derivationPath) =>
+  String deriveXprv(
+    String? xprv,
+    String? derivationPath,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(#deriveXprv, [xprv, derivationPath]),
-        returnValue: _i7.dummyValue<String>(
+        Invocation.method(
+          #deriveXprv,
+          [
+            xprv,
+            derivationPath,
+          ],
+        ),
+        returnValue: _i10.dummyValue<String>(
           this,
-          Invocation.method(#deriveXprv, [xprv, derivationPath]),
+          Invocation.method(
+            #deriveXprv,
+            [
+              xprv,
+              derivationPath,
+            ],
+          ),
         ),
       ) as String);
 
   @override
-  String deriveXpub(String? xpub, String? derivationPath) =>
+  String deriveXpub(
+    String? xpub,
+    String? derivationPath,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(#deriveXpub, [xpub, derivationPath]),
-        returnValue: _i7.dummyValue<String>(
+        Invocation.method(
+          #deriveXpub,
+          [
+            xpub,
+            derivationPath,
+          ],
+        ),
+        returnValue: _i10.dummyValue<String>(
           this,
-          Invocation.method(#deriveXpub, [xpub, derivationPath]),
+          Invocation.method(
+            #deriveXpub,
+            [
+              xpub,
+              derivationPath,
+            ],
+          ),
         ),
       ) as String);
 
   @override
   String deriveAccountXpub(
-    _i12.Uint8List? seed,
-    _i9.DerivationScheme? scheme,
-    _i10.BitcoinNetwork? network, {
+    _i15.Uint8List? seed,
+    _i12.DerivationScheme? scheme,
+    _i13.BitcoinNetwork? network, {
     int? accountIndex = 0,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #deriveAccountXpub,
-          [seed, scheme, network],
+          [
+            seed,
+            scheme,
+            network,
+          ],
           {#accountIndex: accountIndex},
         ),
-        returnValue: _i7.dummyValue<String>(
+        returnValue: _i10.dummyValue<String>(
           this,
           Invocation.method(
             #deriveAccountXpub,
-            [seed, scheme, network],
+            [
+              seed,
+              scheme,
+              network,
+            ],
             {#accountIndex: accountIndex},
           ),
         ),
@@ -291,14 +459,20 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
       (super.noSuchMethod(
         Invocation.method(
           #derivePrivateKey,
-          [xprv, addressIndex],
+          [
+            xprv,
+            addressIndex,
+          ],
           {#change: change},
         ),
-        returnValue: _i7.dummyValue<String>(
+        returnValue: _i10.dummyValue<String>(
           this,
           Invocation.method(
             #derivePrivateKey,
-            [xprv, addressIndex],
+            [
+              xprv,
+              addressIndex,
+            ],
             {#change: change},
           ),
         ),
@@ -313,14 +487,20 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
       (super.noSuchMethod(
         Invocation.method(
           #derivePublicKey,
-          [xpub, addressIndex],
+          [
+            xpub,
+            addressIndex,
+          ],
           {#change: change},
         ),
-        returnValue: _i7.dummyValue<String>(
+        returnValue: _i10.dummyValue<String>(
           this,
           Invocation.method(
             #derivePublicKey,
-            [xpub, addressIndex],
+            [
+              xpub,
+              addressIndex,
+            ],
             {#change: change},
           ),
         ),
@@ -330,44 +510,57 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
   String deriveAddress(
     String? xpub,
     int? addressIndex,
-    _i9.DerivationScheme? scheme,
-    _i10.BitcoinNetwork? network, {
+    _i12.DerivationScheme? scheme,
+    _i13.BitcoinNetwork? network, {
     bool? change = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #deriveAddress,
-          [xpub, addressIndex, scheme, network],
+          [
+            xpub,
+            addressIndex,
+            scheme,
+            network,
+          ],
           {#change: change},
         ),
-        returnValue: _i7.dummyValue<String>(
+        returnValue: _i10.dummyValue<String>(
           this,
           Invocation.method(
             #deriveAddress,
-            [xpub, addressIndex, scheme, network],
+            [
+              xpub,
+              addressIndex,
+              scheme,
+              network,
+            ],
             {#change: change},
           ),
         ),
       ) as String);
 
   @override
-  _i6.Future<void> storeSeed(
+  _i9.Future<void> storeSeed(
     String? walletId,
-    _i12.Uint8List? seed, {
+    _i15.Uint8List? seed, {
     bool? requireBiometric = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #storeSeed,
-          [walletId, seed],
+          [
+            walletId,
+            seed,
+          ],
           {#requireBiometric: requireBiometric},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<_i12.Uint8List?> retrieveSeed(
+  _i9.Future<_i15.Uint8List?> retrieveSeed(
     String? walletId, {
     bool? requireBiometric = false,
   }) =>
@@ -377,11 +570,11 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
           [walletId],
           {#requireBiometric: requireBiometric},
         ),
-        returnValue: _i6.Future<_i12.Uint8List?>.value(),
-      ) as _i6.Future<_i12.Uint8List?>);
+        returnValue: _i9.Future<_i15.Uint8List?>.value(),
+      ) as _i9.Future<_i15.Uint8List?>);
 
   @override
-  _i6.Future<void> storeMnemonic(
+  _i9.Future<void> storeMnemonic(
     String? walletId,
     String? mnemonic, {
     bool? requireBiometric = false,
@@ -389,15 +582,18 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
       (super.noSuchMethod(
         Invocation.method(
           #storeMnemonic,
-          [walletId, mnemonic],
+          [
+            walletId,
+            mnemonic,
+          ],
           {#requireBiometric: requireBiometric},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<String?> retrieveMnemonic(
+  _i9.Future<String?> retrieveMnemonic(
     String? walletId, {
     bool? requireBiometric = false,
   }) =>
@@ -407,47 +603,81 @@ class MockKeyService extends _i1.Mock implements _i9.KeyService {
           [walletId],
           {#requireBiometric: requireBiometric},
         ),
-        returnValue: _i6.Future<String?>.value(),
-      ) as _i6.Future<String?>);
+        returnValue: _i9.Future<String?>.value(),
+      ) as _i9.Future<String?>);
 
   @override
-  _i6.Future<void> deleteWalletData(String? walletId) => (super.noSuchMethod(
-        Invocation.method(#deleteWalletData, [walletId]),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
-
-  @override
-  _i6.Future<bool> isBiometricAvailable() => (super.noSuchMethod(
-        Invocation.method(#isBiometricAvailable, []),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  _i6.Future<List<_i13.BiometricType>> getAvailableBiometrics() =>
-      (super.noSuchMethod(
-        Invocation.method(#getAvailableBiometrics, []),
-        returnValue: _i6.Future<List<_i13.BiometricType>>.value(
-          <_i13.BiometricType>[],
+  _i9.Future<void> deleteWalletData(String? walletId) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteWalletData,
+          [walletId],
         ),
-      ) as _i6.Future<List<_i13.BiometricType>>);
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<bool> authenticateWithBiometrics({
-    String? reason = 'Please authenticate',
-  }) =>
+  _i9.Future<bool> isBiometricAvailable() => (super.noSuchMethod(
+        Invocation.method(
+          #isBiometricAvailable,
+          [],
+        ),
+        returnValue: _i9.Future<bool>.value(false),
+      ) as _i9.Future<bool>);
+
+  @override
+  _i9.Future<List<_i16.BiometricType>> getAvailableBiometrics() =>
       (super.noSuchMethod(
-        Invocation.method(#authenticateWithBiometrics, [], {
-          #reason: reason,
-        }),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+        Invocation.method(
+          #getAvailableBiometrics,
+          [],
+        ),
+        returnValue:
+            _i9.Future<List<_i16.BiometricType>>.value(<_i16.BiometricType>[]),
+      ) as _i9.Future<List<_i16.BiometricType>>);
+
+  @override
+  String encodeP2wpkhAddress(
+    _i15.Uint8List? compressedPubKey,
+    _i13.BitcoinNetwork? network,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #encodeP2wpkhAddress,
+          [
+            compressedPubKey,
+            network,
+          ],
+        ),
+        returnValue: _i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #encodeP2wpkhAddress,
+            [
+              compressedPubKey,
+              network,
+            ],
+          ),
+        ),
+      ) as String);
+
+  @override
+  _i9.Future<bool> authenticateWithBiometrics(
+          {String? reason = 'Please authenticate'}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #authenticateWithBiometrics,
+          [],
+          {#reason: reason},
+        ),
+        returnValue: _i9.Future<bool>.value(false),
+      ) as _i9.Future<bool>);
 }
 
 /// A class which mocks [WalletProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWalletProvider extends _i1.Mock implements _i14.WalletProvider {
+class MockWalletProvider extends _i1.Mock implements _i17.WalletProvider {
   MockWalletProvider() {
     _i1.throwOnMissingStub(this);
   }
@@ -459,9 +689,10 @@ class MockWalletProvider extends _i1.Mock implements _i14.WalletProvider {
       ) as List<_i4.Wallet>);
 
   @override
-  bool get isLoading =>
-      (super.noSuchMethod(Invocation.getter(#isLoading), returnValue: false)
-          as bool);
+  bool get isLoading => (super.noSuchMethod(
+        Invocation.getter(#isLoading),
+        returnValue: false,
+      ) as bool);
 
   @override
   List<_i5.Account> get currentAccounts => (super.noSuchMethod(
@@ -472,173 +703,308 @@ class MockWalletProvider extends _i1.Mock implements _i14.WalletProvider {
   @override
   BigInt get totalBalance => (super.noSuchMethod(
         Invocation.getter(#totalBalance),
-        returnValue: _i7.dummyValue<BigInt>(
+        returnValue: _i10.dummyValue<BigInt>(
           this,
           Invocation.getter(#totalBalance),
         ),
       ) as BigInt);
 
   @override
-  bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
-          as bool);
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
 
   @override
   List<_i5.Account> getAccountsForWallet(String? walletId) =>
       (super.noSuchMethod(
-        Invocation.method(#getAccountsForWallet, [walletId]),
+        Invocation.method(
+          #getAccountsForWallet,
+          [walletId],
+        ),
         returnValue: <_i5.Account>[],
       ) as List<_i5.Account>);
 
   @override
-  List<_i8.UTXO> getAccountUtxos(String? accountId) => (super.noSuchMethod(
-        Invocation.method(#getAccountUtxos, [accountId]),
-        returnValue: <_i8.UTXO>[],
-      ) as List<_i8.UTXO>);
+  List<_i11.UTXO> getAccountUtxos(String? accountId) => (super.noSuchMethod(
+        Invocation.method(
+          #getAccountUtxos,
+          [accountId],
+        ),
+        returnValue: <_i11.UTXO>[],
+      ) as List<_i11.UTXO>);
 
   @override
   BigInt getAccountBalance(String? accountId) => (super.noSuchMethod(
-        Invocation.method(#getAccountBalance, [accountId]),
-        returnValue: _i7.dummyValue<BigInt>(
+        Invocation.method(
+          #getAccountBalance,
+          [accountId],
+        ),
+        returnValue: _i10.dummyValue<BigInt>(
           this,
-          Invocation.method(#getAccountBalance, [accountId]),
+          Invocation.method(
+            #getAccountBalance,
+            [accountId],
+          ),
         ),
       ) as BigInt);
 
   @override
   bool isAccountSyncing(String? accountId) => (super.noSuchMethod(
-        Invocation.method(#isAccountSyncing, [accountId]),
+        Invocation.method(
+          #isAccountSyncing,
+          [accountId],
+        ),
         returnValue: false,
       ) as bool);
 
   @override
-  _i6.Future<_i4.Wallet> createWallet({
+  _i9.Future<_i4.Wallet> createWallet({
     required String? label,
-    required _i10.BitcoinNetwork? network,
+    required _i13.BitcoinNetwork? network,
     int? wordCount = 24,
-    _i9.DerivationScheme? derivationScheme = _i9.DerivationScheme.nativeSegwit,
+    _i12.DerivationScheme? derivationScheme =
+        _i12.DerivationScheme.nativeSegwit,
     String? mnemonic,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#createWallet, [], {
-          #label: label,
-          #network: network,
-          #wordCount: wordCount,
-          #derivationScheme: derivationScheme,
-          #mnemonic: mnemonic,
-        }),
-        returnValue: _i6.Future<_i4.Wallet>.value(
-          _FakeWallet_2(
-            this,
-            Invocation.method(#createWallet, [], {
+        Invocation.method(
+          #createWallet,
+          [],
+          {
+            #label: label,
+            #network: network,
+            #wordCount: wordCount,
+            #derivationScheme: derivationScheme,
+            #mnemonic: mnemonic,
+          },
+        ),
+        returnValue: _i9.Future<_i4.Wallet>.value(_FakeWallet_2(
+          this,
+          Invocation.method(
+            #createWallet,
+            [],
+            {
               #label: label,
               #network: network,
               #wordCount: wordCount,
               #derivationScheme: derivationScheme,
               #mnemonic: mnemonic,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<_i4.Wallet>);
+        )),
+      ) as _i9.Future<_i4.Wallet>);
 
   @override
-  _i6.Future<_i4.Wallet> importWallet({
+  _i9.Future<_i4.Wallet> importWallet({
     required String? mnemonic,
     required String? label,
-    required _i10.BitcoinNetwork? network,
-    _i9.DerivationScheme? derivationScheme = _i9.DerivationScheme.nativeSegwit,
+    required _i13.BitcoinNetwork? network,
+    _i12.DerivationScheme? derivationScheme =
+        _i12.DerivationScheme.nativeSegwit,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#importWallet, [], {
-          #mnemonic: mnemonic,
-          #label: label,
-          #network: network,
-          #derivationScheme: derivationScheme,
-        }),
-        returnValue: _i6.Future<_i4.Wallet>.value(
-          _FakeWallet_2(
-            this,
-            Invocation.method(#importWallet, [], {
+        Invocation.method(
+          #importWallet,
+          [],
+          {
+            #mnemonic: mnemonic,
+            #label: label,
+            #network: network,
+            #derivationScheme: derivationScheme,
+          },
+        ),
+        returnValue: _i9.Future<_i4.Wallet>.value(_FakeWallet_2(
+          this,
+          Invocation.method(
+            #importWallet,
+            [],
+            {
               #mnemonic: mnemonic,
               #label: label,
               #network: network,
               #derivationScheme: derivationScheme,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<_i4.Wallet>);
+        )),
+      ) as _i9.Future<_i4.Wallet>);
 
   @override
-  _i6.Future<_i4.Wallet> importWatchOnlyWallet({
+  _i9.Future<_i4.Wallet> importWatchOnlyWallet({
     required String? xpub,
     required String? label,
-    required _i10.BitcoinNetwork? network,
-    _i9.DerivationScheme? derivationScheme = _i9.DerivationScheme.nativeSegwit,
+    required _i13.BitcoinNetwork? network,
+    _i12.DerivationScheme? derivationScheme =
+        _i12.DerivationScheme.nativeSegwit,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#importWatchOnlyWallet, [], {
-          #xpub: xpub,
-          #label: label,
-          #network: network,
-          #derivationScheme: derivationScheme,
-        }),
-        returnValue: _i6.Future<_i4.Wallet>.value(
-          _FakeWallet_2(
-            this,
-            Invocation.method(#importWatchOnlyWallet, [], {
+        Invocation.method(
+          #importWatchOnlyWallet,
+          [],
+          {
+            #xpub: xpub,
+            #label: label,
+            #network: network,
+            #derivationScheme: derivationScheme,
+          },
+        ),
+        returnValue: _i9.Future<_i4.Wallet>.value(_FakeWallet_2(
+          this,
+          Invocation.method(
+            #importWatchOnlyWallet,
+            [],
+            {
               #xpub: xpub,
               #label: label,
               #network: network,
               #derivationScheme: derivationScheme,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<_i4.Wallet>);
+        )),
+      ) as _i9.Future<_i4.Wallet>);
 
   @override
-  _i6.Future<void> removeWallet(String? walletId) => (super.noSuchMethod(
-        Invocation.method(#removeWallet, [walletId]),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i9.Future<void> removeWallet(String? walletId) => (super.noSuchMethod(
+        Invocation.method(
+          #removeWallet,
+          [walletId],
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
   void selectWallet(String? walletId) => super.noSuchMethod(
-        Invocation.method(#selectWallet, [walletId]),
+        Invocation.method(
+          #selectWallet,
+          [walletId],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void deselectWallet() => super.noSuchMethod(
-        Invocation.method(#deselectWallet, []),
+        Invocation.method(
+          #deselectWallet,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
-  _i6.Future<_i5.Account> createAccount({
+  _i9.Future<_i5.Account> createAccount({
     required String? label,
-    _i9.DerivationScheme? derivationScheme = _i9.DerivationScheme.nativeSegwit,
+    _i12.DerivationScheme? derivationScheme =
+        _i12.DerivationScheme.nativeSegwit,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#createAccount, [], {
-          #label: label,
-          #derivationScheme: derivationScheme,
-        }),
-        returnValue: _i6.Future<_i5.Account>.value(
-          _FakeAccount_3(
-            this,
-            Invocation.method(#createAccount, [], {
+        Invocation.method(
+          #createAccount,
+          [],
+          {
+            #label: label,
+            #derivationScheme: derivationScheme,
+          },
+        ),
+        returnValue: _i9.Future<_i5.Account>.value(_FakeAccount_3(
+          this,
+          Invocation.method(
+            #createAccount,
+            [],
+            {
               #label: label,
               #derivationScheme: derivationScheme,
-            }),
+            },
           ),
-        ),
-      ) as _i6.Future<_i5.Account>);
+        )),
+      ) as _i9.Future<_i5.Account>);
 
   @override
-  _i6.Future<String> deriveNextReceiveAddress(
+  _i9.Future<String> deriveReceivingAddress(
+    String? accountId,
+    int? index,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deriveReceivingAddress,
+          [
+            accountId,
+            index,
+          ],
+        ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #deriveReceivingAddress,
+            [
+              accountId,
+              index,
+            ],
+          ),
+        )),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<String> deriveChangeAddress(
+    String? accountId,
+    int? index,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deriveChangeAddress,
+          [
+            accountId,
+            index,
+          ],
+        ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #deriveChangeAddress,
+            [
+              accountId,
+              index,
+            ],
+          ),
+        )),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<String> nextReceivingAddress(String? accountId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #nextReceivingAddress,
+          [accountId],
+        ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #nextReceivingAddress,
+            [accountId],
+          ),
+        )),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<String> nextChangeAddress(String? accountId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #nextChangeAddress,
+          [accountId],
+        ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #nextChangeAddress,
+            [accountId],
+          ),
+        )),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<String> deriveNextReceiveAddress(
     String? accountId, {
-    _i9.DerivationScheme? derivationScheme,
+    _i12.DerivationScheme? derivationScheme,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -646,65 +1012,152 @@ class MockWalletProvider extends _i1.Mock implements _i14.WalletProvider {
           [accountId],
           {#derivationScheme: derivationScheme},
         ),
-        returnValue: _i6.Future<String>.value(
-          _i7.dummyValue<String>(
-            this,
-            Invocation.method(
-              #deriveNextReceiveAddress,
-              [accountId],
-              {#derivationScheme: derivationScheme},
-            ),
+        returnValue: _i9.Future<String>.value(_i10.dummyValue<String>(
+          this,
+          Invocation.method(
+            #deriveNextReceiveAddress,
+            [accountId],
+            {#derivationScheme: derivationScheme},
           ),
+        )),
+      ) as _i9.Future<String>);
+
+  @override
+  _i9.Future<_i6.HdWalletService> hdServiceFor(String? walletId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #hdServiceFor,
+          [walletId],
         ),
-      ) as _i6.Future<String>);
+        returnValue:
+            _i9.Future<_i6.HdWalletService>.value(_FakeHdWalletService_4(
+          this,
+          Invocation.method(
+            #hdServiceFor,
+            [walletId],
+          ),
+        )),
+      ) as _i9.Future<_i6.HdWalletService>);
+
+  @override
+  _i9.Future<_i7.WalletRepository> walletRepositoryFor(String? accountId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #walletRepositoryFor,
+          [accountId],
+        ),
+        returnValue:
+            _i9.Future<_i7.WalletRepository>.value(_FakeWalletRepository_5(
+          this,
+          Invocation.method(
+            #walletRepositoryFor,
+            [accountId],
+          ),
+        )),
+      ) as _i9.Future<_i7.WalletRepository>);
 
   @override
   List<String> listAddresses(String? accountId) => (super.noSuchMethod(
-        Invocation.method(#listAddresses, [accountId]),
+        Invocation.method(
+          #listAddresses,
+          [accountId],
+        ),
         returnValue: <String>[],
       ) as List<String>);
 
   @override
-  _i6.Future<void> fetchAccountUtxos(String? accountId) => (super.noSuchMethod(
-        Invocation.method(#fetchAccountUtxos, [accountId]),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i9.Future<void> fetchAccountUtxos(String? accountId) => (super.noSuchMethod(
+        Invocation.method(
+          #fetchAccountUtxos,
+          [accountId],
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
-  _i6.Future<void> syncAllAccounts() => (super.noSuchMethod(
-        Invocation.method(#syncAllAccounts, []),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+  _i9.Future<void> syncAllAccounts() => (super.noSuchMethod(
+        Invocation.method(
+          #syncAllAccounts,
+          [],
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+
+  @override
+  _i9.Future<_i8.ScanResult> scanAccountUtxos(
+    String? accountId, {
+    int? gapLimit = 20,
+    _i8.UtxoScannerService? scanner,
+    void Function(_i8.ScanProgress)? onProgress,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #scanAccountUtxos,
+          [accountId],
+          {
+            #gapLimit: gapLimit,
+            #scanner: scanner,
+            #onProgress: onProgress,
+          },
+        ),
+        returnValue: _i9.Future<_i8.ScanResult>.value(_FakeScanResult_6(
+          this,
+          Invocation.method(
+            #scanAccountUtxos,
+            [accountId],
+            {
+              #gapLimit: gapLimit,
+              #scanner: scanner,
+              #onProgress: onProgress,
+            },
+          ),
+        )),
+      ) as _i9.Future<_i8.ScanResult>);
 
   @override
   void clearError() => super.noSuchMethod(
-        Invocation.method(#clearError, []),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(#addListener, [listener]),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
-        Invocation.method(#removeListener, [listener]),
+        Invocation.method(
+          #clearError,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void dispose() => super.noSuchMethod(
-        Invocation.method(#dispose, []),
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i18.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
         returnValueForMissingStub: null,
       );
 
   @override
   void notifyListeners() => super.noSuchMethod(
-        Invocation.method(#notifyListeners, []),
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
         returnValueForMissingStub: null,
       );
 }

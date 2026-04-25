@@ -2,9 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>keychain-access-groups</key>
-	<array>
-		<string>$(AppIdentifierPrefix)com.example.bitnest</string>
-	</array>
+	<!--
+		Local-dev profile only. Release.entitlements is unchanged.
+
+		The previous keychain-access-groups entry expanded to
+		"com.example.bitnest" because there is no real team-ID prefix
+		under ad-hoc signing, which made every Keychain access return
+		-34018 ("A required entitlement isn't present"). With the entry
+		removed, flutter_secure_storage falls back to the default
+		access list, which works for unsigned/ad-hoc local builds.
+	-->
 </dict>
 </plist>

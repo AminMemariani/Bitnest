@@ -1,20 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../models/account.dart';
+import '../../repositories/wallet_repository.dart';
 import '../../utils/networks.dart';
 
-typedef GenerateAddressCallback = Future<String> Function();
+/// Soft cap on how many unused receive addresses the user may accumulate
+/// past the last on-chain usage before the UI pushes back. BIP44's hard
+/// gap-limit is 20; we warn earlier so the user doesn't silently wander
+/// past a point where other wallets (and our own scanner) can still find
+/// their coins on recovery.
+const int kUnusedAddressWarnThreshold = 5;
 
+/// Receive screen bound to the wallet's [WalletRepository].
+///
+/// The current receive address is whatever `repository.getCurrentReceivingAddress()`
+/// says it is — which means:
+///
+///   * The screen auto-refreshes after an outgoing transaction (the
+///     repo advances `currentReceivingIndex` and the UI is a listener).
+///   * The QR code always encodes the same string the address card
+///     displays — one source of truth, no drift.
+///   * "Generate new address" is a real rotation call, not a local list
+///     append.
+///
+/// `WalletRepository` is passed in explicitly rather than looked up from
+/// a Provider so this screen stays testable without a full app scaffold.
 class ReceiveScreen extends StatefulWidget {
   final Account account;
-  final GenerateAddressCallback onGenerateNextAddress;
+  final WalletRepository repository;
   final VoidCallback? onCopy;
 
   const ReceiveScreen({
     super.key,
     required this.account,
-    required this.onGenerateNextAddress,
+    required this.repository,
     this.onCopy,
   });
 
@@ -23,79 +44,59 @@ class ReceiveScreen extends StatefulWidget {
 }
 
 class _ReceiveScreenState extends State<ReceiveScreen> {
-  late List<String> _addresses;
   bool _isGenerating = false;
-  bool _initialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _addresses = List<String>.from(widget.account.addresses);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_addresses.isEmpty) {
-        _generateNextAddress(showMessage: false);
-      }
-    });
-    if (_addresses.isNotEmpty) {
-      _initialized = true;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final currentAddress = _currentAddress;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Receive Bitcoin'),
-      ),
-      body: _initialized
-          ? ListView(
+      appBar: AppBar(title: const Text('Receive Bitcoin')),
+      body: ListenableBuilder(
+        listenable: widget.repository,
+        builder: (context, _) => FutureBuilder<String>(
+          future: widget.repository.getCurrentReceivingAddress(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final address = snapshot.data!;
+            return ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _buildAccountInfoCard(context),
                 const SizedBox(height: 16),
-                _buildQrCard(context, currentAddress),
+                _buildQrCard(context, address),
                 const SizedBox(height: 16),
-                _buildAddressDetails(context, currentAddress),
+                _buildAddressDetails(context, address),
                 const SizedBox(height: 16),
                 _buildActions(context),
-                if (_addresses.length > 1) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Previous Addresses',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildAddressList(context),
-                ],
+                const SizedBox(height: 8),
+                _buildRotationStatus(context),
               ],
-            )
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
   Widget _buildAccountInfoCard(BuildContext context) {
+    final account = widget.account;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.account.label,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text(account.label,
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
-              'Derivation Path: ${widget.account.derivationPath}',
+              'Derivation Path: ${account.derivationPath}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 4),
             Text(
-              'Network: ${widget.account.network == BitcoinNetwork.mainnet ? 'Mainnet' : 'Testnet'}',
+              'Network: ${account.network == BitcoinNetwork.mainnet ? 'Mainnet' : 'Testnet'}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -110,7 +111,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
+            // Keyed by address so Flutter treats a rotated address as a
+            // brand-new widget — the QR cleanly rebuilds on rotation.
             QrImageView(
+              key: ValueKey('qr_$address'),
               data: address,
               size: 220,
               backgroundColor: Theme.of(context).colorScheme.surface,
@@ -122,11 +126,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             const SizedBox(height: 16),
             Text(
               address,
+              key: const Key('qr_card_address_text'),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
             ),
           ],
         ),
@@ -135,26 +137,27 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   }
 
   Widget _buildAddressDetails(BuildContext context, String address) {
+    final repo = widget.repository;
+    final derivation =
+        '${widget.account.derivationPath}/0/${repo.currentReceivingIndex}';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Current Address',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text('Current Address',
+                style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: SelectableText(
                     address,
+                    key: const Key('current_address_text'),
                     style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 14,
-                    ),
+                        fontFamily: 'monospace', fontSize: 14),
                   ),
                 ),
                 IconButton(
@@ -174,11 +177,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Label: ${widget.account.label} • Account #${widget.account.accountIndex + 1}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            Text(
-              'Derivation: $_currentDerivationPath',
+              'Derivation: $derivation',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -193,7 +192,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         Expanded(
           child: ElevatedButton.icon(
             key: const Key('generate_address_button'),
-            onPressed: _isGenerating ? null : () => _generateNextAddress(),
+            onPressed: _isGenerating ? null : _onGeneratePressed,
             icon: _isGenerating
                 ? const SizedBox(
                     width: 16,
@@ -208,69 +207,95 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     );
   }
 
-  Widget _buildAddressList(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _addresses.length - 1,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final reverseIndex = _addresses.length - 2 - index;
-        final address = _addresses[reverseIndex];
-        return ListTile(
-          leading: const Icon(Icons.history),
-          title: Text(
-            address,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-          ),
-          subtitle:
-              Text('Derivation: ${_derivationPathForIndex(reverseIndex)}'),
+  Widget _buildRotationStatus(BuildContext context) {
+    final repo = widget.repository;
+    final unusedGap = _unusedGap(repo);
+    if (unusedGap <= 0) return const SizedBox.shrink();
+
+    final warning = unusedGap >= kUnusedAddressWarnThreshold;
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: warning
+              ? Theme.of(context).colorScheme.error
+              : Theme.of(context).colorScheme.onSurfaceVariant,
         );
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        warning
+            ? '$unusedGap unused addresses ahead of your last on-chain one — '
+                'consider receiving at one of them before generating more.'
+            : '$unusedGap unused address${unusedGap == 1 ? '' : 'es'} after your last used index.',
+        key: const Key('rotation_status_text'),
+        style: style,
+      ),
     );
   }
 
-  String get _currentAddress =>
-      _addresses.isNotEmpty ? _addresses.last : 'Generating address...';
+  // ---- actions ----
 
-  String get _currentDerivationPath => _derivationPathForIndex(
-      _addresses.isNotEmpty ? _addresses.length - 1 : 0);
-
-  String _derivationPathForIndex(int index) {
-    return '${widget.account.derivationPath}/0/$index';
+  Future<void> _onGeneratePressed() async {
+    final repo = widget.repository;
+    final gap = _unusedGap(repo);
+    if (gap >= kUnusedAddressWarnThreshold) {
+      final confirmed = await _showGenerationWarning(gap);
+      if (confirmed != true) return;
+    }
+    await _generate();
   }
 
-  Future<void> _generateNextAddress({bool showMessage = true}) async {
+  Future<bool?> _showGenerationWarning(int currentGap) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('excessive_generation_dialog'),
+        title: const Text('Generate another unused address?'),
+        content: Text(
+          'You already have $currentGap unused receiving addresses past '
+          'your last on-chain one. Creating more widens the gap that '
+          'wallet-recovery tools need to scan — most of them stop at 20. '
+          'Consider receiving at an existing address first.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('excessive_generation_cancel'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('excessive_generation_confirm'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Generate anyway'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generate() async {
     if (_isGenerating) return;
-    setState(() {
-      _isGenerating = true;
-    });
+    setState(() => _isGenerating = true);
     try {
-      final newAddress = await widget.onGenerateNextAddress();
-      setState(() {
-        _addresses.add(newAddress);
-        _initialized = true;
-      });
-      if (showMessage && mounted) {
+      await widget.repository.generateNextReceivingAddress();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('New address generated')),
         );
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _initialized = true;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to generate address: $e')),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isGenerating = false;
-        });
-      }
+      if (mounted) setState(() => _isGenerating = false);
     }
+  }
+
+  int _unusedGap(WalletRepository repo) {
+    // How far past the last on-chain usage the UI-facing index sits.
+    // A freshly-loaded wallet with no history has current=0, lastUsed=-1,
+    // so the gap is 0 — nothing to warn about.
+    return repo.currentReceivingIndex - (repo.lastUsedReceivingIndex + 1);
   }
 }

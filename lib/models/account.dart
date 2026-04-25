@@ -13,7 +13,18 @@ class Account {
   final BigInt balance;
   final int lastSyncedBlock;
   final DateTime? lastSyncedAt;
-  final List<String> addresses; // Generated addresses
+
+  /// Receiving-chain addresses that have been exposed to the UI/network.
+  final List<String> addresses;
+
+  /// Change-chain addresses that have been used.
+  final List<String> changeAddresses;
+
+  /// Next unused index on the receiving chain (m/.../0/[nextReceiveIndex]).
+  final int nextReceiveIndex;
+
+  /// Next unused index on the change chain (m/.../1/[nextChangeIndex]).
+  final int nextChangeIndex;
 
   Account({
     String? id,
@@ -27,9 +38,13 @@ class Account {
     this.lastSyncedBlock = 0,
     this.lastSyncedAt,
     List<String>? addresses,
+    List<String>? changeAddresses,
+    this.nextReceiveIndex = 0,
+    this.nextChangeIndex = 0,
   })  : id = id ?? const Uuid().v4(),
         balance = balance ?? BigInt.zero,
-        addresses = addresses ?? [];
+        addresses = addresses ?? [],
+        changeAddresses = changeAddresses ?? [];
 
   Account copyWith({
     String? id,
@@ -43,6 +58,9 @@ class Account {
     int? lastSyncedBlock,
     DateTime? lastSyncedAt,
     List<String>? addresses,
+    List<String>? changeAddresses,
+    int? nextReceiveIndex,
+    int? nextChangeIndex,
   }) {
     return Account(
       id: id ?? this.id,
@@ -56,6 +74,9 @@ class Account {
       lastSyncedBlock: lastSyncedBlock ?? this.lastSyncedBlock,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       addresses: addresses ?? this.addresses,
+      changeAddresses: changeAddresses ?? this.changeAddresses,
+      nextReceiveIndex: nextReceiveIndex ?? this.nextReceiveIndex,
+      nextChangeIndex: nextChangeIndex ?? this.nextChangeIndex,
     );
   }
 
@@ -72,6 +93,9 @@ class Account {
       'lastSyncedBlock': lastSyncedBlock,
       'lastSyncedAt': lastSyncedAt?.toIso8601String(),
       'addresses': addresses,
+      'changeAddresses': changeAddresses,
+      'nextReceiveIndex': nextReceiveIndex,
+      'nextChangeIndex': nextChangeIndex,
     };
   }
 
@@ -96,6 +120,12 @@ class Account {
               ?.map((e) => e as String)
               .toList() ??
           [],
+      changeAddresses: (json['changeAddresses'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      nextReceiveIndex: json['nextReceiveIndex'] as int? ?? 0,
+      nextChangeIndex: json['nextChangeIndex'] as int? ?? 0,
     );
   }
 }

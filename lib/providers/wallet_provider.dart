@@ -2,9 +2,18 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../models/account.dart';
+import '../models/pending_transaction.dart';
 import '../models/utxo.dart';
 import '../services/key_service.dart';
 import '../services/api_service.dart';
+import '../services/hd_wallet_service.dart';
+import '../services/utxo_scanner_service.dart';
+import '../services/wallet_recovery_service.dart';
+import '../services/broadcast_service.dart';
+import '../services/send_pipeline_service.dart';
+import '../services/transaction_journal.dart';
+import '../services/transaction_signer.dart';
+import '../repositories/wallet_repository.dart';
 import '../utils/networks.dart';
 import '../utils/debug_logger.dart';
 import '../services/key_service.dart' as key_service;
@@ -20,6 +29,7 @@ import '../services/key_service.dart' as key_service;
 class WalletProvider extends ChangeNotifier {
   final KeyService _keyService;
   final ApiService _apiService;
+  TransactionJournal? _journal;
 
   List<Wallet> _wallets = [];
   Wallet? _currentWallet;
@@ -28,14 +38,31 @@ class WalletProvider extends ChangeNotifier {
   Map<String, List<UTXO>> _accountUtxos = {}; // accountId -> utxos
   Map<String, BigInt> _accountBalances = {}; // accountId -> balance
   Map<String, bool> _syncStatus = {}; // accountId -> isSyncing
+  final Map<String, HdWalletService> _hdServices = {}; // walletId -> service
+  final Map<String, WalletRepository> _repositories = {}; // accountId -> repo
   bool _isLoading = false;
   String? _error;
 
   WalletProvider({
     required KeyService keyService,
     required ApiService apiService,
+    TransactionJournal? journal,
   })  : _keyService = keyService,
-        _apiService = apiService;
+        _apiService = apiService,
+        _journal = journal;
+
+  /// Optional [TransactionJournal] used to hide UTXOs that are already
+  /// committed to a `signed` or `broadcast` transaction. Wired by the
+  /// app's bootstrap; absent in legacy tests, in which case no
+  /// filtering occurs.
+  TransactionJournal? get transactionJournal => _journal;
+
+  /// Lazy-loads the [TransactionJournal] from `SharedPreferences` if one
+  /// wasn't injected at construction. Idempotent — subsequent calls
+  /// return the cached instance.
+  Future<TransactionJournal> ensureJournalLoaded() async {
+    return _journal ??= await TransactionJournal.load();
+  }
 
   // Getters
   List<Wallet> get wallets => List.unmodifiable(_wallets);
@@ -60,9 +87,40 @@ class WalletProvider extends ChangeNotifier {
     return accounts.isNotEmpty ? accounts.first : null;
   }
 
-  /// Gets UTXOs for a specific account.
+  /// Gets UTXOs for a specific account, with any outpoints currently
+  /// committed to a pending transaction filtered out.
+  ///
+  /// "Pending" means the [TransactionJournal] holds a record in
+  /// `signed` or `broadcast` state that lists the outpoint as one of
+  /// its inputs. The filter prevents the same UTXO from being selected
+  /// twice — the in-flight tx still owns it until it confirms or
+  /// definitively fails.
   List<UTXO> getAccountUtxos(String accountId) {
-    return List.unmodifiable(_accountUtxos[accountId] ?? []);
+    final all = _accountUtxos[accountId] ?? const <UTXO>[];
+    final journal = _journal;
+    if (journal == null) return List.unmodifiable(all);
+    final pending = journal.pendingOutpointsFor(accountId);
+    if (pending.isEmpty) return List.unmodifiable(all);
+    return List.unmodifiable(
+      all.where((u) => !pending.contains('${u.txid}:${u.vout}')),
+    );
+  }
+
+  /// All UTXOs known for the account, including ones consumed by
+  /// in-flight transactions. Use this for UI views that want to show
+  /// "pending" coins explicitly; coin selection should use
+  /// [getAccountUtxos] instead.
+  List<UTXO> getAccountUtxosIncludingPending(String accountId) {
+    return List.unmodifiable(_accountUtxos[accountId] ?? const <UTXO>[]);
+  }
+
+  /// Test-only entry point to seed the in-memory UTXO cache. Lets unit
+  /// tests exercise the journal-filter behavior in [getAccountUtxos]
+  /// without standing up a fake scanner or mocking [ApiService].
+  @visibleForTesting
+  void debugSeedAccountUtxos(String accountId, List<UTXO> utxos) {
+    _accountUtxos[accountId] = List.of(utxos);
+    notifyListeners();
   }
 
   /// Gets balance for a specific account.
@@ -299,6 +357,16 @@ class WalletProvider extends ChangeNotifier {
         _currentWallet = null;
       }
 
+      // Dispose any cached HD service (zeros in-memory seed).
+      _hdServices.remove(walletId)?.dispose();
+
+      // Clear persisted address-rotation state for each of this wallet's
+      // accounts, and drop cached repositories.
+      for (final accountId in accountIds) {
+        _repositories.remove(accountId);
+        await WalletRepository.clear(accountId: accountId);
+      }
+
       // Delete secure storage
       await _keyService.deleteWalletData(walletId);
 
@@ -428,53 +496,115 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  /// Derives the next receive address for an account.
-  ///
-  /// [accountId] is the account ID.
-  /// [derivationScheme] is the derivation scheme.
-  Future<String> deriveNextReceiveAddress(
-    String accountId, {
-    key_service.DerivationScheme? derivationScheme,
-  }) async {
-    final account = _currentAccounts[accountId];
-    if (account == null) {
-      throw ArgumentError('Account not found: $accountId');
-    }
+  /// Derives a receiving address at a specific BIP84 index without advancing
+  /// the account's rotation state. Use this for lookups and gap scans.
+  Future<String> deriveReceivingAddress(String accountId, int index) async {
+    final account = _requireAccount(accountId);
+    return _deriveAddressAt(account, index: index, change: false);
+  }
 
-    // Determine derivation scheme from account derivation path
-    final scheme = derivationScheme ??
-        _getDerivationSchemeFromPath(account.derivationPath);
+  /// Derives a change address at a specific BIP84 index without advancing
+  /// the account's rotation state.
+  Future<String> deriveChangeAddress(String accountId, int index) async {
+    final account = _requireAccount(accountId);
+    return _deriveAddressAt(account, index: index, change: true);
+  }
 
-    // Get next address index
-    final nextIndex = account.addresses.length;
-
-    // Derive address
-    final address = _keyService.deriveAddress(
-      account.xpub,
-      nextIndex,
-      scheme,
-      account.network,
+  /// Returns the account's next unused receiving address and advances the
+  /// rotation index. The address is recorded on the account and future calls
+  /// return the subsequent index.
+  Future<String> nextReceivingAddress(String accountId) async {
+    final account = _requireAccount(accountId);
+    final address = await _deriveAddressAt(
+      account,
+      index: account.nextReceiveIndex,
       change: false,
     );
 
-    // Add to account addresses
-    final updatedAccount = account.copyWith(
+    final updated = account.copyWith(
       addresses: [...account.addresses, address],
+      nextReceiveIndex: account.nextReceiveIndex + 1,
     );
-    _currentAccounts[accountId] = updatedAccount;
+    _persistAccount(updated);
+    notifyListeners();
+    return address;
+  }
 
-    // Update in accounts list
-    final walletAccounts = _accounts[account.walletId];
-    if (walletAccounts != null) {
-      final index = walletAccounts.indexWhere((a) => a.id == accountId);
-      if (index != -1) {
-        walletAccounts[index] = updatedAccount;
-      }
+  /// Returns the account's next unused change address and advances the
+  /// rotation index. Intended to be called when constructing a transaction.
+  Future<String> nextChangeAddress(String accountId) async {
+    final account = _requireAccount(accountId);
+    final address = await _deriveAddressAt(
+      account,
+      index: account.nextChangeIndex,
+      change: true,
+    );
+
+    final updated = account.copyWith(
+      changeAddresses: [...account.changeAddresses, address],
+      nextChangeIndex: account.nextChangeIndex + 1,
+    );
+    _persistAccount(updated);
+    notifyListeners();
+    return address;
+  }
+
+  /// Back-compat alias for the previous single-method API. New code should
+  /// call [nextReceivingAddress] directly.
+  Future<String> deriveNextReceiveAddress(
+    String accountId, {
+    key_service.DerivationScheme? derivationScheme,
+  }) {
+    return nextReceivingAddress(accountId);
+  }
+
+  /// Returns (loading if needed) the cached [HdWalletService] for [walletId].
+  ///
+  /// Throws [StateError] for watch-only wallets (no seed) — callers should
+  /// branch on [Wallet.xprv] first if they need to support those.
+  Future<HdWalletService> hdServiceFor(String walletId) async {
+    final existing = _hdServices[walletId];
+    if (existing != null && !existing.isDisposed) return existing;
+
+    final wallet = _wallets.firstWhere(
+      (w) => w.id == walletId,
+      orElse: () => throw ArgumentError('Wallet not found: $walletId'),
+    );
+    if (wallet.xprv == null) {
+      throw StateError(
+        'Wallet "$walletId" is watch-only; no seed is available for HD key '
+        'derivation.',
+      );
     }
 
-    notifyListeners();
+    final svc = await HdWalletService.load(
+      keyService: _keyService,
+      walletId: wallet.id,
+      network: wallet.network,
+    );
+    _hdServices[walletId] = svc;
+    return svc;
+  }
 
-    return address;
+  /// Returns (loading if needed) the persistent [WalletRepository] for the
+  /// given account. The repository owns the four receiving/change index
+  /// counters and persists them to [SharedPreferences] so they survive an
+  /// app restart.
+  ///
+  /// Throws [StateError] for watch-only wallets (the repository currently
+  /// derives through [HdWalletService], which requires a seed).
+  Future<WalletRepository> walletRepositoryFor(String accountId) async {
+    final existing = _repositories[accountId];
+    if (existing != null) return existing;
+
+    final account = _requireAccount(accountId);
+    final hd = await hdServiceFor(account.walletId);
+    final repo = await WalletRepository.load(
+      accountId: accountId,
+      hd: hd,
+    );
+    _repositories[accountId] = repo;
+    return repo;
   }
 
   /// Lists all addresses for an account.
@@ -565,6 +695,247 @@ class WalletProvider extends ChangeNotifier {
     for (final account in accounts) {
       await fetchAccountUtxos(account.id);
     }
+  }
+
+  /// Runs a BIP44 gap-limit scan of both receive and change chains for
+  /// [accountId], stores the discovered UTXOs in-memory, and folds the
+  /// high watermarks into the account's [WalletRepository] (advancing
+  /// lastUsed/current indices).
+  ///
+  /// Uses [gapLimit] consecutive unused addresses as the stopping condition
+  /// (default 20 per BIP44). Watch-only wallets are not yet supported.
+  Future<ScanResult> scanAccountUtxos(
+    String accountId, {
+    int gapLimit = 20,
+    UtxoScannerService? scanner,
+    void Function(ScanProgress)? onProgress,
+  }) async {
+    final account = _requireAccount(accountId);
+
+    _syncStatus[accountId] = true;
+    notifyListeners();
+
+    try {
+      final hd = await hdServiceFor(account.walletId);
+      final repo = await walletRepositoryFor(accountId);
+      final svc = scanner ?? UtxoScannerService(api: _apiService);
+
+      final result = await svc.scan(
+        hd: hd,
+        gapLimit: gapLimit,
+        onProgress: onProgress,
+      );
+
+      _accountUtxos[accountId] = List.of(result.allUtxos);
+      _accountBalances[accountId] = result.totalBalance;
+
+      await repo.applyScanResult(result);
+
+      final updated = account.copyWith(
+        balance: result.totalBalance,
+        lastSyncedAt: DateTime.now(),
+        nextReceiveIndex: repo.currentReceivingIndex,
+        nextChangeIndex: repo.currentChangeIndex,
+      );
+      _persistAccount(updated);
+
+      return result;
+    } catch (e, stackTrace) {
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'WalletProvider.scanAccountUtxos',
+        additionalInfo: {
+          'accountId': accountId,
+          'gapLimit': gapLimit,
+        },
+      );
+      _setError('Scan failed: $e');
+      rethrow;
+    } finally {
+      _syncStatus[accountId] = false;
+      notifyListeners();
+    }
+  }
+
+  /// Imports a wallet from [mnemonic] and immediately runs a gap-limit scan
+  /// to recover used addresses, UTXOs, and the correct `currentReceiving`
+  /// / `currentChange` indices. This is the entry point for the
+  /// "restore from seed phrase" flow.
+  ///
+  /// Progress can be observed through [onProgress], one event per address
+  /// queried. [gapLimit] defaults to 20 (BIP44); advanced users may raise
+  /// it for wallets that accumulated a wider unused-address gap elsewhere.
+  ///
+  /// Returns the [RecoveryResult] so callers can display a summary.
+  Future<RecoveryResult> recoverFromMnemonic({
+    required String mnemonic,
+    required String label,
+    required BitcoinNetwork network,
+    int gapLimit = 20,
+    key_service.DerivationScheme derivationScheme =
+        key_service.DerivationScheme.nativeSegwit,
+    void Function(ScanProgress)? onProgress,
+  }) async {
+    // Step 1 — create the wallet record + seed storage the usual way.
+    final wallet = await importWallet(
+      mnemonic: mnemonic,
+      label: label,
+      network: network,
+      derivationScheme: derivationScheme,
+    );
+    final account =
+        _accounts[wallet.id]!.isNotEmpty ? _accounts[wallet.id]!.first : null;
+    if (account == null) {
+      throw StateError('Imported wallet has no default account');
+    }
+
+    // Step 2 — scan + fold into the repository. The scan runs on the HD
+    // service the provider already cached for this wallet.
+    _syncStatus[account.id] = true;
+    notifyListeners();
+    try {
+      final hd = await hdServiceFor(wallet.id);
+      final recovery = WalletRecoveryService(
+        keyService: _keyService,
+        apiService: _apiService,
+      );
+      final result = await recovery.rescan(
+        hd: hd,
+        accountId: account.id,
+        gapLimit: gapLimit,
+        onProgress: onProgress,
+      );
+
+      // Surface the scan output through the provider's in-memory caches
+      // so any screen watching this provider sees the recovered state
+      // immediately.
+      _accountUtxos[account.id] = List.of(result.utxos);
+      _accountBalances[account.id] = result.totalBalance;
+      _repositories[account.id] = result.repository;
+
+      _persistAccount(account.copyWith(
+        balance: result.totalBalance,
+        lastSyncedAt: DateTime.now(),
+        nextReceiveIndex: result.currentReceivingIndex,
+        nextChangeIndex: result.currentChangeIndex,
+      ));
+      return result;
+    } catch (e, st) {
+      DebugLogger.logException(
+        e,
+        st,
+        context: 'WalletProvider.recoverFromMnemonic',
+        additionalInfo: {
+          'walletId': wallet.id,
+          'gapLimit': gapLimit,
+        },
+      );
+      _setError('Recovery failed: $e');
+      rethrow;
+    } finally {
+      _syncStatus[account.id] = false;
+      notifyListeners();
+    }
+  }
+
+  /// Manual rescan from settings. Re-runs the gap-limit scan for
+  /// [accountId], updating balances, UTXOs, and rotation pointers.
+  ///
+  /// Thin convenience over [scanAccountUtxos] that exposes progress
+  /// reporting for UI — the two share the same underlying mechanics.
+  Future<ScanResult> rescanAccount(
+    String accountId, {
+    int gapLimit = 20,
+    void Function(ScanProgress)? onProgress,
+  }) {
+    return scanAccountUtxos(
+      accountId,
+      gapLimit: gapLimit,
+      onProgress: onProgress,
+    );
+  }
+
+  /// Re-broadcasts any transaction that was signed and journaled but
+  /// not confirmed-broadcast — typically because the previous app
+  /// session crashed (or lost network) between signing and the
+  /// pipeline's success commit.
+  ///
+  /// Walks every full (non-watch-only) wallet's accounts and asks
+  /// [SendPipelineService.recoverPending] to drive the journal's
+  /// `signed` records back to `broadcast` (or `failed`). Idempotent —
+  /// the pipeline's per-txid dedupe prevents double rotation, and a
+  /// re-broadcast of an already-confirmed tx is a node-side no-op.
+  ///
+  /// [broadcastService] is the network adapter to use; in production
+  /// this is the same instance threaded through [SendProvider].
+  /// Returns one [BroadcastOutcome] per record processed.
+  Future<List<BroadcastOutcome>> recoverPendingTransactions({
+    required BroadcastService broadcastService,
+  }) async {
+    final journal = await ensureJournalLoaded();
+    final outcomes = <BroadcastOutcome>[];
+
+    for (final wallet in _wallets) {
+      // Watch-only wallets have no seed and can't sign; skip.
+      if (wallet.xprv == null) continue;
+
+      final accounts = _accounts[wallet.id] ?? const [];
+      if (accounts.isEmpty) continue;
+
+      // Any account on this wallet might have signed records pending.
+      // Resolve the HD service once per wallet, then iterate accounts.
+      HdWalletService? hd;
+      for (final account in accounts) {
+        final accountRecords = journal
+            .byAccount(account.id)
+            .where((t) => t.state == PendingTxState.signed)
+            .toList();
+        if (accountRecords.isEmpty) continue;
+
+        try {
+          hd ??= await hdServiceFor(wallet.id);
+        } catch (e, st) {
+          DebugLogger.logException(
+            e,
+            st,
+            context:
+                'WalletProvider.recoverPendingTransactions (hdServiceFor)',
+            additionalInfo: {'walletId': wallet.id},
+          );
+          continue;
+        }
+
+        final repo = await walletRepositoryFor(account.id);
+        final signer = TransactionSigner(hd: hd);
+        final pipeline = SendPipelineService(
+          signer: signer,
+          broadcast: broadcastService,
+          journal: journal,
+        );
+
+        try {
+          final results = await pipeline.recoverPending(
+            accountId: account.id,
+            repository: repo,
+            network: account.network,
+          );
+          outcomes.addAll(results);
+        } catch (e, st) {
+          DebugLogger.logException(
+            e,
+            st,
+            context: 'WalletProvider.recoverPendingTransactions',
+            additionalInfo: {
+              'accountId': account.id,
+              'pendingCount': accountRecords.length,
+            },
+          );
+        }
+      }
+    }
+
+    return outcomes;
   }
 
   void clearError() {
@@ -704,5 +1075,65 @@ class WalletProvider extends ChangeNotifier {
     } else {
       return key_service.DerivationScheme.nativeSegwit;
     }
+  }
+
+  Account _requireAccount(String accountId) {
+    final account = _currentAccounts[accountId];
+    if (account == null) {
+      throw ArgumentError('Account not found: $accountId');
+    }
+    return account;
+  }
+
+  /// Derives an address at [index] on the given chain, using the full HD
+  /// service (seed-based BIP84) when the wallet has a seed, and falling back
+  /// to account-xpub derivation for watch-only wallets.
+  Future<String> _deriveAddressAt(
+    Account account, {
+    required int index,
+    required bool change,
+  }) async {
+    final wallet = _wallets.firstWhere(
+      (w) => w.id == account.walletId,
+      orElse: () =>
+          throw StateError('Wallet not found for account ${account.id}'),
+    );
+
+    final scheme = _getDerivationSchemeFromPath(account.derivationPath);
+
+    if (wallet.xprv != null && scheme == key_service.DerivationScheme.nativeSegwit) {
+      // Seed-backed BIP84 via the dedicated HD service.
+      final hd = await hdServiceFor(wallet.id);
+      return change
+          ? hd.deriveChangeAddress(index)
+          : hd.deriveReceivingAddress(index);
+    }
+
+    // Watch-only (or legacy/p2sh schemes) — derive from the stored account xpub.
+    return _keyService.deriveAddress(
+      account.xpub,
+      index,
+      scheme,
+      account.network,
+      change: change,
+    );
+  }
+
+  void _persistAccount(Account updated) {
+    _currentAccounts[updated.id] = updated;
+    final walletAccounts = _accounts[updated.walletId];
+    if (walletAccounts != null) {
+      final i = walletAccounts.indexWhere((a) => a.id == updated.id);
+      if (i != -1) walletAccounts[i] = updated;
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final svc in _hdServices.values) {
+      svc.dispose();
+    }
+    _hdServices.clear();
+    super.dispose();
   }
 }

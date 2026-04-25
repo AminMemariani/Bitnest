@@ -153,12 +153,71 @@ Where:
 - **BIP44**: Legacy address derivation
 - **BIP49**: P2SH-wrapped Segwit derivation
 - **BIP84**: Native Segwit derivation
+- **BIP143**: Witness transaction signature digest (used by `TransactionSigner`)
+- **BIP173 / BIP350**: Bech32 / Bech32m address encoding (used by `lib/utils/bech32.dart`)
+
+## Scope and Limitations
+
+### Taproot (BIP86) is not fully supported
+
+The wallet **can pay** Taproot recipients — `bc1p…` / `tb1p…` addresses are
+decoded via the project's BIP350 (bech32m) codec and the correct
+`OP_1 <32-byte program>` `scriptPubKey` is emitted in the transaction
+output.
+
+The wallet **cannot spend** Taproot UTXOs. `HdWalletService` derives only
+BIP84 keypairs (`m/84'/coin'/account'/change/index`); no
+`m/86'/...` derivation, no Schnorr (BIP340) signing path, and no
+BIP341 sighash. A Taproot UTXO would have no matching derivation
+metadata and would fail at `TransactionSigner.sign()` time.
+
+Recommendation: do not import a seed into this wallet that has accumulated
+Taproot UTXOs elsewhere. Until BIP86 support lands, those funds are not
+recoverable through this codebase. Migration plan, when prioritised:
+
+1. Add `DerivationScheme.taproot` and corresponding paths to
+   `HdWalletService`.
+2. Replace ECDSA-over-secp256k1 with Schnorr (`pointycastle` does not
+   ship Schnorr; use BDK / a vetted Dart binding).
+3. Implement BIP341 sighash and witness construction for key-path
+   spends; defer script-path spends.
+
+### Development-mode plaintext fallback removed
+
+A previous iteration of `KeyService` had a `_fallbackStorage` map that, in
+debug builds, kept seeds and mnemonics in process memory if
+`flutter_secure_storage` failed. **That fallback has been removed.** Storage
+failures now propagate as exceptions. If you need a dev-time stub, use a
+mock `FlutterSecureStorage` in the constructor — never reintroduce a
+debug-only plaintext path.
+
+### PSBT (BIP174) is not supported
+
+The signer consumes the in-house `UnsignedTransaction` data class and
+emits a witness-serialised transaction hex. There is no PSBT import or
+export; hardware-wallet integrations would need that layered on top.
+The data carried by `UnsignedTransaction` is sufficient to round-trip
+into PSBT v0 if added later.
+
+### Cross-validation against an external Bitcoin node has not been performed
+
+The signer's tests verify internal consistency: the produced signature
+verifies against its own pubkey, the witness stack has the expected
+shape, and the bech32 round-trip is correct. Before enabling mainnet use,
+a separate validation pass should sign a tx with a known seed and confirm
+that `bitcoin-cli decoderawtransaction` (or the equivalent `bitcoinjs-lib`
+or `bdk` API) accepts the hex.
 
 ## References
 
 - [BIP39: Mnemonic code](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)
 - [BIP32: HD Wallets](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
 - [BIP44: Multi-Account Hierarchy](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
+- [BIP84: Native SegWit](https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki)
+- [BIP86: Taproot key derivation (not yet supported here)](https://github.com/bitcoin/bips/blob/master/bip-0086.mediawiki)
+- [BIP143: Transaction Signature Verification for Version 0 Witness Program](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki)
+- [BIP173: Bech32](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)
+- [BIP350: Bech32m](https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki)
 - [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage)
 - [Local Auth](https://pub.dev/packages/local_auth)
 

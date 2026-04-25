@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,7 @@ import 'package:pointycastle/digests/ripemd160.dart';
 import 'package:hex/hex.dart';
 import 'package:bs58check/bs58check.dart' as bs58;
 import '../utils/networks.dart';
+import '../utils/bech32.dart';
 import '../utils/debug_logger.dart';
 
 /// Derivation scheme types for Bitcoin addresses.
@@ -36,9 +38,6 @@ class KeyService {
   final FlutterSecureStorage _storage;
   final LocalAuthentication _localAuth;
 
-  // Fallback in-memory storage for development when Keychain fails
-  final Map<String, String> _fallbackStorage = {};
-
   // Storage keys
   static const String _seedStorageKey = 'wallet_seed_';
   static const String _mnemonicStorageKey = 'wallet_mnemonic_';
@@ -46,8 +45,25 @@ class KeyService {
   KeyService({
     FlutterSecureStorage? storage,
     LocalAuthentication? localAuth,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
+  })  : _storage = storage ?? _defaultStorage(),
         _localAuth = localAuth ?? LocalAuthentication();
+
+  /// Constructs a [FlutterSecureStorage] with platform-aware options.
+  ///
+  /// On macOS the plugin defaults to the modern Data Protection
+  /// Keychain (`kSecUseDataProtectionKeychain`), which requires
+  /// entitlements that ad-hoc signed local-dev builds cannot provide
+  /// (results in `-34018 errSecMissingEntitlement`). We opt into the
+  /// legacy file Keychain on macOS only — iOS and Android keep the
+  /// default secure-element backed storage.
+  static FlutterSecureStorage _defaultStorage() {
+    if (Platform.isMacOS) {
+      return const FlutterSecureStorage(
+        mOptions: MacOsOptions(useDataProtectionKeyChain: false),
+      );
+    }
+    return const FlutterSecureStorage();
+  }
 
   /// Generates a new BIP39 mnemonic phrase.
   ///
@@ -239,18 +255,13 @@ class KeyService {
     try {
       await _storage.write(key: '$_seedStorageKey$walletId', value: seedBase64);
     } catch (e, stackTrace) {
-      // Fallback to in-memory storage if Keychain access fails (development)
-      if (kDebugMode) {
-        DebugLogger.logException(
-          e,
-          stackTrace,
-          context: 'KeyService.storeSeed (Keychain failed, using fallback)',
-          additionalInfo: {'walletId': walletId},
-        );
-        _fallbackStorage['$_seedStorageKey$walletId'] = seedBase64;
-      } else {
-        rethrow;
-      }
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'KeyService.storeSeed',
+        additionalInfo: {'walletId': walletId},
+      );
+      rethrow;
     }
   }
 
@@ -272,22 +283,17 @@ class KeyService {
       }
     }
 
-    String? seedBase64;
+    final String? seedBase64;
     try {
       seedBase64 = await _storage.read(key: '$_seedStorageKey$walletId');
     } catch (e, stackTrace) {
-      // Fallback to in-memory storage if Keychain access fails (development)
-      if (kDebugMode) {
-        DebugLogger.logException(
-          e,
-          stackTrace,
-          context: 'KeyService.retrieveSeed (Keychain failed, using fallback)',
-          additionalInfo: {'walletId': walletId},
-        );
-        seedBase64 = _fallbackStorage['$_seedStorageKey$walletId'];
-      } else {
-        rethrow;
-      }
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'KeyService.retrieveSeed',
+        additionalInfo: {'walletId': walletId},
+      );
+      rethrow;
     }
     if (seedBase64 == null) {
       return null;
@@ -321,18 +327,13 @@ class KeyService {
         value: mnemonic,
       );
     } catch (e, stackTrace) {
-      // Fallback to in-memory storage if Keychain access fails (development)
-      if (kDebugMode) {
-        DebugLogger.logException(
-          e,
-          stackTrace,
-          context: 'KeyService.storeMnemonic (Keychain failed, using fallback)',
-          additionalInfo: {'walletId': walletId},
-        );
-        _fallbackStorage['$_mnemonicStorageKey$walletId'] = mnemonic;
-      } else {
-        rethrow;
-      }
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'KeyService.storeMnemonic',
+        additionalInfo: {'walletId': walletId},
+      );
+      rethrow;
     }
   }
 
@@ -357,19 +358,13 @@ class KeyService {
     try {
       return await _storage.read(key: '$_mnemonicStorageKey$walletId');
     } catch (e, stackTrace) {
-      // Fallback to in-memory storage if Keychain access fails (development)
-      if (kDebugMode) {
-        DebugLogger.logException(
-          e,
-          stackTrace,
-          context:
-              'KeyService.retrieveMnemonic (Keychain failed, using fallback)',
-          additionalInfo: {'walletId': walletId},
-        );
-        return _fallbackStorage['$_mnemonicStorageKey$walletId'];
-      } else {
-        rethrow;
-      }
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'KeyService.retrieveMnemonic',
+        additionalInfo: {'walletId': walletId},
+      );
+      rethrow;
     }
   }
 
@@ -381,20 +376,13 @@ class KeyService {
       await _storage.delete(key: '$_seedStorageKey$walletId');
       await _storage.delete(key: '$_mnemonicStorageKey$walletId');
     } catch (e, stackTrace) {
-      // Fallback: remove from in-memory storage if Keychain access fails (development)
-      if (kDebugMode) {
-        DebugLogger.logException(
-          e,
-          stackTrace,
-          context:
-              'KeyService.deleteWalletData (Keychain failed, using fallback)',
-          additionalInfo: {'walletId': walletId},
-        );
-        _fallbackStorage.remove('$_seedStorageKey$walletId');
-        _fallbackStorage.remove('$_mnemonicStorageKey$walletId');
-      } else {
-        rethrow;
-      }
+      DebugLogger.logException(
+        e,
+        stackTrace,
+        context: 'KeyService.deleteWalletData',
+        additionalInfo: {'walletId': walletId},
+      );
+      rethrow;
     }
   }
 
@@ -469,6 +457,17 @@ class KeyService {
     return _bech32Encode(hrp, 0, hash160);
   }
 
+  /// Encodes a compressed secp256k1 public key as a BIP84 P2WPKH address.
+  ///
+  /// [compressedPubKey] is the 33-byte compressed public key.
+  /// [network] selects the HRP (`bc` for mainnet, `tb` for testnet).
+  String encodeP2wpkhAddress(
+    Uint8List compressedPubKey,
+    BitcoinNetwork network,
+  ) {
+    return _deriveP2WPKHAddress(compressedPubKey, network);
+  }
+
   /// Computes RIPEMD160(SHA256(data)).
   Uint8List _hash160(Uint8List data) {
     final sha256 = SHA256Digest();
@@ -487,35 +486,10 @@ class KeyService {
     return bs58.encode(versioned);
   }
 
-  /// Bech32 encodes data for P2WPKH addresses (simplified implementation).
-  ///
-  /// Note: This is a simplified bech32 encoder. For production use, consider
-  /// using a dedicated bech32 library for full BIP173 compliance.
+  /// Bech32-encodes a SegWit address via the project's BIP173/BIP350-compliant
+  /// codec in [Bech32]. Witness version 0 uses BIP173; 1+ uses BIP350.
   String _bech32Encode(String hrp, int witnessVersion, Uint8List data) {
-    // Convert data to 5-bit groups
-    final values = <int>[witnessVersion];
-
-    var bits = 0;
-    var value = 0;
-    for (var byte in data) {
-      value = (value << 8) | byte;
-      bits += 8;
-      while (bits >= 5) {
-        values.add((value >> (bits - 5)) & 31);
-        bits -= 5;
-      }
-    }
-    if (bits > 0) {
-      values.add((value << (5 - bits)) & 31);
-    }
-
-    // Bech32 charset
-    const charset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
-    final encoded = values.map((v) => charset[v]).join();
-
-    // Simple bech32 encoding (full implementation would include checksum)
-    // For production, use a proper bech32 library
-    return '${hrp}1$encoded';
+    return Bech32.encodeSegwitAddress(hrp, witnessVersion, data);
   }
 
   /// Authenticates the user with biometrics (public method).

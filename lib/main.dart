@@ -15,6 +15,7 @@ import 'services/broadcast_service.dart';
 import 'ui/screens/splash_screen.dart';
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/screens/wallet_screen.dart';
+import 'ui/theme/liquid_glass_theme.dart';
 import 'utils/debug_logger.dart';
 
 void main() {
@@ -163,10 +164,19 @@ class BitNestApp extends StatelessWidget {
           ],
           child: Consumer2<SettingsProvider, WalletProvider>(
             builder: (context, settingsProvider, walletProvider, _) {
+              // On iOS/macOS use the Liquid Glass theme — translucent
+              // surfaces, system colors, no Material ripples, Cupertino
+              // page transitions. Elsewhere keep the existing Material
+              // theme so Android/Web/Linux/Windows don't get the
+              // BackdropFilter cost or the foreign aesthetic.
               return MaterialApp(
                 title: 'BitNest',
-                theme: _buildLightTheme(),
-                darkTheme: _buildDarkTheme(),
+                theme: isLiquidGlassPlatform
+                    ? liquidGlassLightTheme()
+                    : _buildLightTheme(),
+                darkTheme: isLiquidGlassPlatform
+                    ? liquidGlassDarkTheme()
+                    : _buildDarkTheme(),
                 themeMode: settingsProvider.themeMode,
                 debugShowCheckedModeBanner: false,
 
@@ -188,6 +198,7 @@ class BitNestApp extends StatelessWidget {
                 // Adaptive navigation: routes based on app state
                 home: _AppNavigator(
                   walletProvider: walletProvider,
+                  broadcastService: broadcastService,
                   prefs: prefs,
                 ),
               );
@@ -266,10 +277,12 @@ class BitNestApp extends StatelessWidget {
 /// - Shows onboarding only if both conditions are false
 class _AppNavigator extends StatefulWidget {
   final WalletProvider walletProvider;
+  final BroadcastService broadcastService;
   final SharedPreferences prefs;
 
   const _AppNavigator({
     required this.walletProvider,
+    required this.broadcastService,
     required this.prefs,
   });
 
@@ -316,6 +329,29 @@ class _AppNavigatorState extends State<_AppNavigator> {
     // Mark onboarding as completed if user has wallets (imported wallet)
     if (hasWallets && !hasCompletedOnboarding) {
       await widget.prefs.setBool(_firstRunKey, true);
+    }
+
+    // Crash-recovery hook: re-broadcast any signed-but-not-broadcast
+    // tx the previous session left behind in the journal. Idempotent
+    // (per-txid dedupe in the pipeline). On a fresh install with no
+    // wallets / no journal entries it's a no-op.
+    unawaited(_recoverPendingTransactions());
+  }
+
+  Future<void> _recoverPendingTransactions() async {
+    try {
+      await widget.walletProvider.recoverPendingTransactions(
+        broadcastService: widget.broadcastService,
+      );
+    } catch (e, st) {
+      // Non-fatal: a failed recovery sweep mustn't block app launch.
+      // Each individual record's failure is already journaled by the
+      // pipeline, so the next launch will try again.
+      DebugLogger.logException(
+        e,
+        st,
+        context: '_AppNavigator._recoverPendingTransactions',
+      );
     }
   }
 
