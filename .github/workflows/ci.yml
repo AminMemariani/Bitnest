@@ -19,7 +19,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -61,7 +64,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -90,7 +96,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -112,7 +121,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -141,7 +153,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -175,7 +190,10 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          # Pinned to match local. Floor for project APIs is 3.27.0
+          # (Color.withValues, CardThemeData, DialogThemeData were
+          # introduced there). Bumping in lockstep across all jobs.
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitnest/models/transaction.dart';
 import 'package:bitnest/models/utxo.dart';
-import 'package:bitnest/services/api_service.dart';
 import 'package:bitnest/services/hd_wallet_service.dart';
 import 'package:bitnest/services/key_service.dart';
 import 'package:bitnest/services/utxo_scanner_service.dart';

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitnest/models/account.dart';
 import 'package:bitnest/repositories/wallet_repository.dart';

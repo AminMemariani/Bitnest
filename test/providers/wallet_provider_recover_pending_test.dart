@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bitnest/models/pending_transaction.dart';
 import 'package:bitnest/providers/wallet_provider.dart';
-import 'package:bitnest/services/broadcast_service.dart';
-import 'package:bitnest/services/key_service.dart';
 import 'package:bitnest/services/mock_api_service.dart';
 import 'package:bitnest/services/transaction_journal.dart';
 import 'package:bitnest/utils/networks.dart';
