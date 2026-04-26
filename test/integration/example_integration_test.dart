@@ -110,8 +110,7 @@ void main() {
   });
 
   group('Error Handling', () {
-    testWidgets('handles missing platform channels gracefully',
-        (tester) async {
+    testWidgets('handles missing platform channels gracefully', (tester) async {
       // TestEnvironment.install gives us a stub-everything surface. If
       // BitNestApp ever calls a channel we forgot to mock, the test
       // would either hang or surface an exception. After advancing
@@ -124,8 +123,7 @@ void main() {
   });
 
   group('Performance Tests', () {
-    testWidgets('boots within a generous test-harness budget',
-        (tester) async {
+    testWidgets('boots within a generous test-harness budget', (tester) async {
       // Wall-clock isn't accurate inside the binding (the binding
       // simulates time), so this asserts the boot completes — i.e.
       // advancePastSplash returns within pumpAndSettle's internal
@@ -134,8 +132,7 @@ void main() {
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('settings screen round-trip is exception-free',
-        (tester) async {
+    testWidgets('settings screen round-trip is exception-free', (tester) async {
       await bootApp(tester);
 
       // Two settings round-trips. Each iteration: open settings, pop
