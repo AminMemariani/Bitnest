@@ -144,12 +144,12 @@ The UI is designed to be responsive across different screen sizes:
 - All UI widgets that support an `adaptive()` constructor must use it
 - Where no adaptive constructor exists, use platform-aware fallbacks (documented in code)
 - Network configuration is centralized in `lib/utils/networks.dart`
-- State management follows Provider pattern with ChangeNotifier
+- State management follows the Provider pattern with ChangeNotifier
 
 ## License
 
-[Add your license here]
+MIT License
 
 ## Contributing
 
-[Add contribution guidelines here]
+Feel free to fork this repo and send me your PRs
