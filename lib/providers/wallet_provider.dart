@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../models/account.dart';
@@ -31,13 +30,13 @@ class WalletProvider extends ChangeNotifier {
   final ApiService _apiService;
   TransactionJournal? _journal;
 
-  List<Wallet> _wallets = [];
+  final List<Wallet> _wallets = [];
   Wallet? _currentWallet;
-  Map<String, List<Account>> _accounts = {}; // walletId -> accounts
-  Map<String, Account> _currentAccounts = {}; // accountId -> account
-  Map<String, List<UTXO>> _accountUtxos = {}; // accountId -> utxos
-  Map<String, BigInt> _accountBalances = {}; // accountId -> balance
-  Map<String, bool> _syncStatus = {}; // accountId -> isSyncing
+  final Map<String, List<Account>> _accounts = {}; // walletId -> accounts
+  final Map<String, Account> _currentAccounts = {}; // accountId -> account
+  final Map<String, List<UTXO>> _accountUtxos = {}; // accountId -> utxos
+  final Map<String, BigInt> _accountBalances = {}; // accountId -> balance
+  final Map<String, bool> _syncStatus = {}; // accountId -> isSyncing
   final Map<String, HdWalletService> _hdServices = {}; // walletId -> service
   final Map<String, WalletRepository> _repositories = {}; // accountId -> repo
   bool _isLoading = false;

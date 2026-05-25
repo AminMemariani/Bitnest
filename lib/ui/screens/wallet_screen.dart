@@ -517,13 +517,13 @@ class _WalletScreenState extends State<WalletScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .errorContainer
-                          .withOpacity(0.3),
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Theme.of(context)
                             .colorScheme
                             .error
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -585,7 +585,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .outline
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -608,7 +608,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .outline
-                                            .withOpacity(0.2),
+                                            .withValues(alpha: 0.2),
                                       ),
                                     ),
                                     child: Row(
@@ -623,7 +623,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
-                                                    .withOpacity(0.6),
+                                                    .withValues(alpha: 0.6),
                                               ),
                                         ),
                                         const SizedBox(width: 4),
@@ -711,7 +711,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           network: networkProvider.currentNetwork,
                           mnemonic: mnemonic,
                         );
-                        if (mounted) {
+                        if (context.mounted) {
                           walletProvider.selectWallet(
                             walletProvider.wallets.last.id,
                           );
@@ -723,7 +723,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           );
                         }
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error: $e')),
                           );
@@ -780,7 +780,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     label: nameController.text,
                   );
                 } catch (e) {
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error: $e')),
                     );

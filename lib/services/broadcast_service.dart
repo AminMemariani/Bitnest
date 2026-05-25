@@ -1,7 +1,6 @@
 import '../services/api_service.dart';
 import '../utils/debug_logger.dart';
 import '../utils/networks.dart';
-import 'api_service.dart' show ApiException;
 
 /// Service for broadcasting Bitcoin transactions.
 ///

@@ -369,7 +369,7 @@ class _SendScreenState extends State<SendScreen> {
             const SizedBox(height: 8),
             ...utxos.map((utxo) => CheckboxListTile(
                   title: Text(
-                    utxo.address.substring(0, 16) + '...',
+                    '${utxo.address.substring(0, 16)}...',
                     style:
                         const TextStyle(fontFamily: 'monospace', fontSize: 12),
                   ),
@@ -507,7 +507,7 @@ class _SendScreenState extends State<SendScreen> {
     try {
       preview = await _buildPreviewTransaction(context, sendProvider);
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Cannot prepare transaction: $e'),
@@ -520,12 +520,12 @@ class _SendScreenState extends State<SendScreen> {
 
     // Step 2 — show the confirmation sheet. If the user cancels, we
     // return without burning any state.
-    if (!mounted) return;
+    if (!context.mounted) return;
     final confirmed = await _showConfirmationSheet(context, preview);
     if (confirmed != true) return;
 
     // Step 3 — biometric gate, then the real send.
-    if (!mounted) return;
+    if (!context.mounted) return;
     final keyService = KeyService();
     bool authenticated = false;
     try {
@@ -535,7 +535,7 @@ class _SendScreenState extends State<SendScreen> {
           reason: 'Authenticate to send Bitcoin transaction',
         );
       } else {
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -551,7 +551,7 @@ class _SendScreenState extends State<SendScreen> {
     }
 
     if (!authenticated) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Authentication required to send transaction'),
@@ -564,7 +564,7 @@ class _SendScreenState extends State<SendScreen> {
 
     try {
       await sendProvider.sendTransaction(authenticated: true);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Transaction sent successfully!'),
@@ -573,7 +573,7 @@ class _SendScreenState extends State<SendScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),

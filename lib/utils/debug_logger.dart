@@ -110,7 +110,7 @@ class DebugLogger {
       if (defaultValue != null) {
         return defaultValue;
       }
-      throw e;
+      rethrow;
     }
   }
 
@@ -131,7 +131,7 @@ class DebugLogger {
       if (defaultValue != null) {
         return defaultValue;
       }
-      throw e;
+      rethrow;
     }
   }
 }

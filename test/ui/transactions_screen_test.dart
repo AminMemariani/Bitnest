@@ -57,7 +57,7 @@ void main() {
     mockApi.setTransaction('tx_sample', transaction);
   });
 
-  Widget _buildTestApp(TransactionsProvider provider, Account account) {
+  Widget buildTestApp(TransactionsProvider provider, Account account) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => provider),
@@ -78,7 +78,7 @@ void main() {
   testWidgets('TransactionsScreen loads and displays transactions',
       (tester) async {
     final provider = TransactionsProvider(apiService: mockApi);
-    await tester.pumpWidget(_buildTestApp(provider, account));
+    await tester.pumpWidget(buildTestApp(provider, account));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('transaction_tile_tx_sample')), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
   testWidgets('TransactionsScreen shows empty state', (tester) async {
     final emptyAccount = account.copyWith(addresses: []);
     final provider = TransactionsProvider(apiService: mockApi);
-    await tester.pumpWidget(_buildTestApp(provider, emptyAccount));
+    await tester.pumpWidget(buildTestApp(provider, emptyAccount));
     await tester.pumpAndSettle();
 
     expect(find.text('No transactions yet'), findsOneWidget);

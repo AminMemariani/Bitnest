@@ -55,7 +55,7 @@ void main() {
     mockApi.setTransaction('tx_detail', transaction);
   });
 
-  Widget _buildDetailScreen({String? initialHex}) {
+  Widget buildDetailScreen({String? initialHex}) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -76,7 +76,7 @@ void main() {
   }
 
   testWidgets('TransactionDetailScreen shows summary and hex', (tester) async {
-    await tester.pumpWidget(_buildDetailScreen(initialHex: 'deadbeef'));
+    await tester.pumpWidget(buildDetailScreen(initialHex: 'deadbeef'));
 
     expect(find.text('Transaction Details'), findsOneWidget);
     expect(find.text('Incoming Transaction'), findsOneWidget);
@@ -89,7 +89,7 @@ void main() {
 
   testWidgets('TransactionDetailScreen loads hex when not provided',
       (tester) async {
-    await tester.pumpWidget(_buildDetailScreen());
+    await tester.pumpWidget(buildDetailScreen());
     await tester.pumpAndSettle();
 
     expect(find.byType(SelectableText), findsWidgets);

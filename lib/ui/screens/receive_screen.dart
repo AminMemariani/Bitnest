@@ -165,7 +165,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   onPressed: () async {
                     widget.onCopy?.call();
                     await Clipboard.setData(ClipboardData(text: address));
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Address copied')),
                       );

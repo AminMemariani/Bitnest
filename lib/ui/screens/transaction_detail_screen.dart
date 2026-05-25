@@ -278,7 +278,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         NetworkExplorer.transactionUrl(network, widget.transaction.txid);
     final uri = Uri.parse(url);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!launched && mounted) {
+    if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not open explorer')),
       );
