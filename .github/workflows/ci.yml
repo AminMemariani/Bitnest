@@ -131,12 +131,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build macOS (no codesign)
+      - name: Disable code signing for CI
         run: |
-          flutter build macos --debug \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+          cat >> macos/Runner/Configs/Debug.xcconfig <<'EOF'
+
+          CODE_SIGN_IDENTITY =
+          CODE_SIGNING_REQUIRED = NO
+          CODE_SIGNING_ALLOWED = NO
+          EOF
+
+      - name: Build macOS
+        run: flutter build macos --debug
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
